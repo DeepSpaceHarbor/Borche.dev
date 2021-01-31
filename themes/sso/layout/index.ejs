@@ -1,0 +1,27 @@
+<section class="section section-lg bg-primary">
+  <div class="container">
+    <div class="row">
+      <% page.posts.each(function(item, index){ %>
+
+      <%if (index == 0 ) { %> 
+      <%- partial('./cards/top-card', {post: item}) %> 
+      <% } %> 
+      
+      <%if (index > 0 ) { %> 
+      <%- partial('./cards/regular-card', {post: item}) %> 
+      <% } %> 
+      <% }); %>
+      <div class="d-flex justify-content-center w-100">
+        <%- paginator({
+            prev_text: '<button class="btn btn-primary animate-left-3 mr-2" type="button">Previous page</button>',
+            next_text: '<button class="btn btn-primary animate-right-3 mr-2" type="button">Next page</button>',
+            escape: false,
+            end_size: 0,
+            mid_size: 0,
+            space: ''
+          }) %>
+    </div>
+    </div>
+  </div>
+</section>
+

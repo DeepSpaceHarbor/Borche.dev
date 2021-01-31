@@ -1,0 +1,20 @@
+<div class="col-12 col-md-6 col-lg-4 mb-4 mb-lg-5">
+    <div class="card bg-primary shadow-soft border-light p-4 rounded">
+      <a href="<%- config.root %><%- post.path %>">
+        <img src="<%- config.root %><%- post.featured_image || theme.featured_image %>" 
+        class="card-img-top rounded" 
+        />
+      </a>
+      <div class="card-body p-0 pt-4">
+        <a href="<%- config.root %><%- post.path %>" class="h4"><%- post.title %></a>
+        <div class="d-flex align-items-center my-4">
+            <span class="h6 text-muted small font-weight-normal mb-0 ml-0">
+            <time datetime="<%= post.date %>"><%= post.date.format(config.date_format) %></time>
+          </span>
+        </div>
+        <p class="mb-0">
+            <%- post.summary || post.excerpt %>
+        </p>
+      </div>
+    </div>
+  </div>

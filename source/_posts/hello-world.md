@@ -1,5 +1,6 @@
 ---
 title: Hello World
+summary: 'Today we are overwhelmed by content, and inspiration can strike anywhere. The point is to collect it and share it in a structured way to inspire your team, client, and users. In this article, I will show you how to design a dashboard.'
 ---
 Welcome to [Hexo](https://hexo.io/)! This is your very first post. Check [documentation](https://hexo.io/docs/) for more info. If you get any problems when using Hexo, you can find the answer in [troubleshooting](https://hexo.io/docs/troubleshooting.html) or you can ask me on [GitHub](https://github.com/hexojs/hexo/issues).
 

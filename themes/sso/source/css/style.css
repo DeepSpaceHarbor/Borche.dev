@@ -1,0 +1,16 @@
+@font-face {
+  font-family: Hacked;
+  src: url("./Hacked-KerX.ttf") format("truetype");
+}
+
+.logo {
+  font-family: "Hacked";
+}
+
+.post-content > img {
+  border-radius: 0.55rem !important;
+}
+
+.page-number.current {
+  display: none;
+}

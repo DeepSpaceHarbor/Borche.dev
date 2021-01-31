@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <%- partial('./head.ejs') %>
+  <body>
+    <header class="header-global">
+        <nav
+          id="navbar-main"
+          aria-label="Primary navigation"
+          class="navbar navbar-main navbar-expand-lg navbar-theme-primary headroom navbar-light" >
+          <div class="container position-relative">
+              <a href="/">
+            <h1 class="logo">Borche.dev</h6>
+            </a>
+          </div>
+        </nav>
+      </header>
+      <main>
+    <%- body %>
+    </main>
+    <%- partial('./footer.ejs') %>
+    <%- partial('./scripts.ejs') %>
+  </body>
+</html>

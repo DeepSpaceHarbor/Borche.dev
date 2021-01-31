@@ -1,0 +1,21 @@
+<section class="section-header pb-0 bg-primary">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 text-center">
+                <h1 class="display-3 mb-4 px-lg-5"><%- page.title %></h1>
+                <div class="post-meta">
+                    <span class="post-date"><%= page.date.format(config.date_format) %></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="section section-sm bg-primary text-black">
+    <article class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-8 shadow-soft p-4 border border-light rounded post-content">
+                <%- page.content %>
+            </div>
+        </article>
+    </div>
