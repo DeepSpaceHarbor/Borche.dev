@@ -1,13 +1,32 @@
 <head>
-  <meta charset="utf-8" />
-  <title>A</title>
-  <meta name="description" content="" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link type="text/css" href="/css/neumorphism.css" rel="stylesheet" />
+  <meta charset="UTF-8">
+  <meta name=viewport content="width=device-width, initial-scale=1">
+  <meta name=”robots” content="index, follow">
+  <!-- Meta -->
+  <%
+  var title = page.title;
+  var description = page.summary;
+  if(is_home()){
+    description = config.description;
+  }
+  %>
+  <title><% if (title){ %><%= title %> | <% } %><%= config.title %></title>
+  <meta name="description" content="<%= description %>">
+  <meta property="og:title" content="<%= page.title || config.title %>" />
+  <meta property="og:url" content="<%= page.permalink || config.url %>" />
+  <meta property="og:image" content="<%- config.url %><%- config.root %><%- page.featured_image || theme.featured_image %>" />
+  <meta property="og:type" content="<%- is_post() ? "article" : "website" %>" />
+  <meta property="og:description" content="<%= description %>" />
+
+  <!-- CSS -->
+  <link type="text/css"  href="/css/neumorphism.css" rel="stylesheet" />
   <link type="text/css" href="/css/style.css" rel="stylesheet" />
   <link
     type="text/css"
     href="/vendor/@fortawesome/fontawesome-free/css/all.min.css"
     rel="stylesheet"
   />
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/favicon.png"/>
+
 </head>

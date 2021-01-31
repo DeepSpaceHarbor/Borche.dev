@@ -1,6 +1,7 @@
 @font-face {
   font-family: Hacked;
   src: url("./Hacked-KerX.ttf") format("truetype");
+  font-display: block;
 }
 
 .logo {
@@ -13,4 +14,10 @@
 
 .page-number.current {
   display: none;
+}
+
+@media screen and (max-width: 767px) {
+  .header-global {
+    padding-bottom: 2rem;
+  }
 }
