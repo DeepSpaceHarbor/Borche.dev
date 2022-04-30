@@ -45,15 +45,15 @@ post_asset_folder: false
 relative_link: false
 future: true
 highlight:
-  enable: true
-  line_number: true
+  enable: false
+  line_number: false
   auto_detect: false
   tab_replace: ""
-  wrap: true
-  hljs: false
+  wrap: false
+  hljs: true
 prismjs:
-  enable: false
-  preprocess: true
+  enable: true
+  preprocess: false
   line_number: true
   tab_replace: ""
 
@@ -79,7 +79,7 @@ meta_generator: false
 ## Hexo uses Moment.js to parse and display date
 ## You can customize the date format as defined in
 ## http://momentjs.com/docs/#/displaying/format/
-date_format: D MMMM, YYYY
+date_format: MMMM D, YYYY
 time_format: HH:mm:ss
 ## updated_option supports 'mtime', 'date', 'empty'
 updated_option: "mtime"
