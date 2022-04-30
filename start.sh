@@ -1,1 +1,1 @@
-hexo server --open
+hexo server --open 
