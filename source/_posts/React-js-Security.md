@@ -152,4 +152,4 @@ export default function Demo() {
 }
 ```
 The best way to catch these issues is during code reviews. 
-Tools such as [SemGrep](https://semgrep.dev/), [SonarLint](https://www.sonarsource.com/products/sonarlint/), and [Snyk Security](https://snyk.io/product/snyk-code/) can spot potential problems during development. Use your judgment when deciding if reported items are real vulnerabilities. There are plenty of tools that can help us find suspicious code, but none of them is 100% effective.
+Tools such as [SemGrep](https://semgrep.dev/), [SonarLint](https://www.sonarlint.org/), and [Snyk Security](https://snyk.io/product/snyk-code/) can spot potential problems during development. Use your judgment when deciding if reported items are real vulnerabilities. There are plenty of tools that can help us find suspicious code, but none of them is 100% effective.
