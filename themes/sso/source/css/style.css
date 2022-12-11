@@ -39,6 +39,12 @@ button {
   }
 }
 
+@media screen and (max-width: 480px) {
+  .back-to-top-text {
+    display: none;
+  }
+}
+
 blockquote {
   margin: 0 0 1rem;
   border-left: 2px solid #31344b;
@@ -51,7 +57,9 @@ article p {
   margin-bottom: 0px !important;
 }
 
-article li, article ol, article ul {
+article li,
+article ol,
+article ul {
   margin-bottom: auto !important;
 }
 

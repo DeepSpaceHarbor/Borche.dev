@@ -1,4 +1,4 @@
-title: Stopping unauthorized code execution in React.js
+title: Preventing unauthorized code execution in React.js
 featured_image: files/images/featured/hack-macbook-money.jpg
 summary: >-
   Your web app got hacked. The attacker modified the source code, and your

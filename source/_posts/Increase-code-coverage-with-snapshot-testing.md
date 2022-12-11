@@ -1,4 +1,4 @@
-title: Increase code coverage with snapshot testing
+title: Maximizing code coverage with snapshot testing
 featured_image: files/images/featured/snapshot.jpg
 summary: >-
   A blog post where I'm trying to convince you that snapshots are a great and
