@@ -62,7 +62,9 @@ That's it! 🥳 From now on, on every commit, the staged JavaScript & TypeScript
 ## Lint code and run tests before pushing to remote
 Start by adding a lint task into package.json:
 ```json
-"lint": "rome check ./"
+  "scripts": {
+    "lint": "rome check ./"
+  }
 ```
 and update the pre-push task by running:
 ```bash
@@ -77,3 +79,7 @@ For example:
 $ git push --no-verify
 ```
 command will skip the execution of our pre-push checks.
+
+## Next steps
+If your project doesn't have git hooks, now is the perfect time to introduce them and gain extra points in the upcoming performance reviews. 
+The alternative is to go crazy, think big and share your new hook with the development community. Look at projects like [lolcommits](https://lolcommits.github.io/), [commit-colors](https://github.com/sparkbox/commit-colors) and [podmena](https://github.com/bmwant/podmena) for inspiration.
