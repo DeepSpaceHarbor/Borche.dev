@@ -4,6 +4,22 @@
   font-display: block;
 }
 
+:root *::-webkit-scrollbar {
+  width: 0.7rem;
+}
+
+:root *::-webkit-scrollbar-thumb {
+  background-color: #696d73;
+  -webkit-background-clip: content-box;
+  background-clip: content-box;
+  border: 2px solid transparent;
+  border-radius: 3px;
+}
+
+:root *::-webkit-scrollbar-track-piece {
+  background-color: #ffffff33;
+}
+
 .logo {
   font-family: "Hacked";
 }
