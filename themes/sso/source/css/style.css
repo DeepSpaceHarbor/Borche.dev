@@ -91,3 +91,11 @@ article h6 {
 table {
   margin-top: 1rem;
 }
+
+code {
+  color: #ecf0f3;
+  word-break: break-word;
+  background-color: #262833;
+  padding: 2px 2px;
+  border-radius: 2px;
+}
