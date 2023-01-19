@@ -5,15 +5,19 @@
 }
 
 :root *::-webkit-scrollbar {
-  width: 0.7rem;
+  width: 1rem;
 }
 
 :root *::-webkit-scrollbar-thumb {
   background-color: #696d73;
   -webkit-background-clip: content-box;
   background-clip: content-box;
-  border: 2px solid transparent;
-  border-radius: 3px;
+  border: 3px solid transparent;
+  border-radius: 5px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: #525457;
 }
 
 :root *::-webkit-scrollbar-track-piece {
@@ -21,10 +25,10 @@
 }
 
 .logo {
-  font-family: "Hacked";
+  font-family: "Hacked", fantasy;
 }
 
-body {
+:root {
   cursor: url("/images/cursor.png"), auto !important;
 }
 
@@ -98,4 +102,10 @@ code {
   background-color: #262833;
   padding: 2px 2px;
   border-radius: 2px;
+}
+
+.post-content > * > a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
