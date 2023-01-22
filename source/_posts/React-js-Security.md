@@ -22,7 +22,7 @@ With proper configuration, modern browsers can detect and stop these attacks.
 
 ## Stopping the malicious client
 One way to introduce malicious code is to gain access to the server hosting the app and change the source code. A variation of this attack is gaining access to the CI/CD pipeline. After the code changes, the server will serve the malicious version to the user.
-**Subresource integrity(SRI)** is the first line of defense against this type of attack. To activate these checks add integrity attribute to resources([`<link/>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link#attributes) and [`<script/>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attributes) tags).
+**Subresource integrity(SRI)** is the first line of defense against this type of attack. To activate these checks add integrity attribute to resources ([link](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link#attributes) and [script](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attributes) tags).
 The integrity attribute should contain the cryptographic signature of the resource.
 For example:
 ```html

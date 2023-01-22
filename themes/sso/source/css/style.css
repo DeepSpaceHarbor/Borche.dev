@@ -97,7 +97,7 @@ table {
 }
 
 code {
-  color: #ecf0f3;
+  color: #ecf0f3 !important;
   word-break: break-word;
   background-color: #262833;
   padding: 2px 2px;
