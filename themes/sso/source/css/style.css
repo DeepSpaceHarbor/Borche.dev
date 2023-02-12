@@ -12,8 +12,8 @@
   background-color: #696d73;
   -webkit-background-clip: content-box;
   background-clip: content-box;
-  border: 3px solid transparent;
-  border-radius: 5px;
+  border-right: 2px solid transparent;
+  /* border-radius: 1px; */
 }
 
 *::-webkit-scrollbar-thumb:hover {
