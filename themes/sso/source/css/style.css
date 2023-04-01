@@ -90,6 +90,8 @@ article h4,
 article h5,
 article h6 {
   margin: 1rem 0 1rem 0 !important;
+  border-bottom: 1px dashed #262833;
+  padding-bottom: 2px;
 }
 
 table {
