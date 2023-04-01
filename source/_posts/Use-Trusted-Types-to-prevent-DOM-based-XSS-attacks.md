@@ -120,7 +120,7 @@ Finally, the CSP header is updated to inform the browser of the changes.
 ```
 That's it! 🥳 We just used trusted types to secure a part of our web app.
 
-## Next Steps
+## Next steps
 Adopting trusted types in your organization is a great way to promote the usage of safe APIs and drastically reduce the XSS attack surface. 
 When Google started its API hardening project [^2], the majority of the questions and help requests occurred in the first two weeks. 
 In the following weeks, it fell to an average of one question per week. 
