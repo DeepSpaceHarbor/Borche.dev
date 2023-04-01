@@ -127,7 +127,7 @@ In the following weeks, it fell to an average of one question per week.
 This experience suggests that large organizations should be able to adopt trusted types with relatively low effort. As expected, the number of XSS reports saw a significant decrease. 
 The development team behind Angular had a similar experience [^3]. 
 It took six weeks for a team of four security engineers and one intern to implement trusted types. During this period, they implemented trusted types and discovered previously unknown vulnerabilities in Angular and the surrounding ecosystem. 
-If you're looking to play with this, you should know that trusted types are [available](https://caniuse.com/trusted-types) in Chromium based browsers, and a polyful is available in the [w3c repository](https://github.com/w3c/trusted-types#polyfill).
+If you're looking to play with this, you should know that trusted types are [available](https://caniuse.com/trusted-types) in Chromium based browsers, and a polyfill is available in the [w3c repository](https://github.com/w3c/trusted-types#polyfill).
 
 [^1]: Google LLC. "Trusted Types", W3C, Available: [https://w3.org/TR/trusted-types/](https://w3.org/TR/trusted-types/#introduction).
 [^2]: Pei Wang, Julian Bangert, and Christoph Kern. "[If it’s not secure, it should not compile: Preventing DOM-based XSS in large-scale web development with API hardening.](https://research.google/pubs/pub49950/)" In 2021 IEEE/ACM 43rd International Conference on Software Engineering (ICSE), pp. 1360-1372. IEEE, 2021.
