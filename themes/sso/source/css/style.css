@@ -90,8 +90,9 @@ article h4,
 article h5,
 article h6 {
   margin: 1rem 0 1rem 0 !important;
-  border-bottom: 1px dashed #262833;
+  border-bottom: 1px solid;
   padding-bottom: 2px;
+  border-color: #d1d9e6 !important;
 }
 
 table {
