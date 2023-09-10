@@ -117,3 +117,8 @@ article a:hover {
   font-weight: 700;
   text-decoration: none;
 }
+
+#footnotelist a:hover {
+  font-weight: initial;
+  text-decoration: none;
+}
