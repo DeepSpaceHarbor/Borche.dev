@@ -115,10 +115,10 @@ article a {
 }
 
 article a:hover {
-  color: #ecf0f3 !important;
+  color: white !important;
   background: linear-gradient(to left top, #000000, #090909);
   text-decoration: none;
-  transition: color 0.2s linear;
+  transition: color 0.1s linear;
   border-radius: 3px;
 }
 
