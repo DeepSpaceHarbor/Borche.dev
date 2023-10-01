@@ -111,11 +111,15 @@ article a {
   text-decoration: underline;
   text-decoration-thickness: 0.5px;
   text-underline-offset: 3px;
+  padding: 1px 3px;
 }
 
 article a:hover {
-  font-weight: 700;
+  color: #ecf0f3 !important;
+  background: linear-gradient(to left top, #000000, #090909);
   text-decoration: none;
+  transition: color 0.2s linear;
+  border-radius: 3px;
 }
 
 #footnotelist a:hover {
