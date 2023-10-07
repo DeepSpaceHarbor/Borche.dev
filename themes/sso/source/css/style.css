@@ -108,18 +108,14 @@ code {
 }
 
 article a {
+  color: #31344b !important;
   text-decoration: underline;
-  text-decoration-thickness: 0.5px;
-  text-underline-offset: 3px;
-  padding: 1px 3px;
+  text-decoration-thickness: 0.3px;
 }
 
 article a:hover {
-  color: white !important;
-  background: linear-gradient(to left top, #000000, #090909);
-  text-decoration: none;
-  transition: color 0.1s linear;
-  border-radius: 3px;
+  color: #13141d !important;
+  border-bottom: 0.3px ridge #13141d;
 }
 
 #footnotelist a:hover {
