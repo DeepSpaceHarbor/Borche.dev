@@ -7,4 +7,4 @@ tags: []
 categories: []
 date: 2023-10-22 18:32:33
 ---
-Hey friends, exciting news! [Hexo-Bridge](https://github.com/DeepSpaceHarbor/hexo-bridge) just dropped its v2.0, and it's a game-changer for all you hexo wizards out there. They've rolled out this new [code mirror](https://codemirror.net/) editor that makes content creation a breeze, plus there's a slick dark mode for the night owls. And here's the cool part: it's got Grammarly integration built right in! So, no more cringe-worthy typos and grammar blunders. Bugs have been squashed, performance has been improved. Everything is just better, better, and better.
+Hey friends, exciting news! [Hexo-Bridge](https://github.com/DeepSpaceHarbor/hexo-bridge) just dropped its v2.0. This new version comes with this new [code mirror](https://codemirror.net/) editor that makes content creation a breeze, plus there's a slick dark mode for the night owls. And here's the cool part: it's got Grammarly integration built right in! So, no more cringe-worthy typos and grammar blunders. Bugs have been squashed, performance has been improved. Everything is just better, better, and better.
