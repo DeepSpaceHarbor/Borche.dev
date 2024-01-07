@@ -122,3 +122,15 @@ article a:hover {
   font-weight: initial;
   text-decoration: none;
 }
+
+.featured-image {
+  max-height: 270px;
+  max-width: 450px;
+  height: auto;
+  width: auto;
+}
+
+.post-card-image {
+  max-height: 250px;
+  height: auto;
+}
