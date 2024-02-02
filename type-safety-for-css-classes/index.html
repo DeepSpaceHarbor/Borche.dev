@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <meta name=viewport content="width=device-width, initial-scale=1">
+  <meta name=”robots” content="index, follow">
+  <!-- Meta -->
+  
+  <title>Type safety for CSS classes | Borche.dev</title>
+  <meta name="description" content="Did you know that class names in your CSS/SCSS/LESS files can become types? Now you do. It takes less than 15 minutes to implement and they will prevent all of the embarrassing mistakes on your next refactor!">
+  <meta property="og:title" content="Type safety for CSS classes" />
+  <meta property="og:url" content="https://borche.dev/type-safety-for-css-classes/" />
+  <meta property="og:image" content="https://borche.dev/files/images/featured/typed-css.jpg" />
+  <meta property="og:type" content="article" />
+  <meta property="og:description" content="Did you know that class names in your CSS/SCSS/LESS files can become types? Now you do. It takes less than 15 minutes to implement and they will prevent all of the embarrassing mistakes on your next refactor!" />
+
+  <!-- CSS -->
+  <link type="text/css"  href="/css/neumorphism.css" rel="stylesheet" />
+  <link type="text/css" href="/css/style.css" rel="stylesheet" />
+  <link
+    type="text/css"
+    href="/vendor/@fortawesome/fontawesome-free/css/all.min.css"
+    rel="stylesheet"
+  />
+  <link
+  type="text/css"
+  href="/vendor/prismjs/themes/prism-synthwave84.css"
+  rel="stylesheet"
+/>
+<link
+type="text/css"
+href="/vendor/prismjs/plugins/match-braces/prism-match-braces.css"
+rel="stylesheet"
+/>
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/favicon.png"/>
+
+</head>
+
+  <body class="match-braces">
+    <header class="header-global">
+      <nav
+        id="navbar-main"
+        aria-label="Primary navigation"
+        class="navbar navbar-main navbar-expand-lg navbar-theme-primary headroom navbar-light"
+      >
+        <div class="container position-relative">
+          <a href="/">
+            <h1 class="logo">Borche.dev</h1>
+          </a>
+        </div>
+      </nav>
+    </header>
+    <main><section class="section-header pb-0 bg-primary">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 text-center">
+                <h1 class="display-3 mb-4 px-lg-5">Type safety for CSS classes</h1>
+                <div class="post-meta">
+                    <span class="post-date">October 8, 2023</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="section section-sm bg-primary text-black">
+    <article class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-8 shadow-soft p-4 border border-light rounded post-content text-break">
+                <p>Catching issues as early as possible is essential for the developer experience. But browsers and many popular tools will happily ignore invalid properties, usage of non-existing classes, etc.  Let’s explore how you can improve that and create a better developer experience for your project.</p>
+<h4 id="tl-dr"><a href="#tl-dr" class="headerlink" title="tl;dr?"></a>tl;dr?</h4><ul>
+<li><a href="#CSS-in-JS">CSS-in-JS</a></li>
+<li><a href="#CSS-modules">CSS modules</a></li>
+<li><a href="#Sass-SCSS">Sass&#x2F;SCSS</a></li>
+<li><a href="#LESS">LESS</a></li>
+</ul>
+<hr>
+<h2 id="CSS-in-JS"><a href="#CSS-in-JS" class="headerlink" title="CSS-in-JS"></a>CSS-in-JS</h2><p>The CSS-in-JS approach tends to be typesafe by default. </p>
+<pre class="line-numbers language-tsx" data-language="tsx"><code class="language-tsx">&#x2F;&#x2F; This is type-safe CSS. It&#39;s a CSS object that you can use in your components.
+const helloWorldStyle: React.CSSProperties &#x3D; &#123;
+  color: &quot;purple&quot;,
+&#125;;
+
+export function HelloWorld() &#123;
+  return &lt;div style&#x3D;&#123;helloWorldStyle&#125;&gt; Hello world! &lt;&#x2F;div&gt;;
+&#125;</code></pre>
+
+<pre class="line-numbers language-tsx" data-language="tsx"><code class="language-tsx">export function HelloWorld() &#123;
+  return (
+    &lt;div
+      style&#x3D;&#123;&#123;
+        &#x2F;&#x2F; This is also type-safe CSS.
+        color: &quot;purple&quot;,
+      &#125;&#125;&gt;
+      Hello world!
+    &lt;&#x2F;div&gt;
+  );
+&#125;</code></pre>
+
+<h2 id="CSS-modules"><a href="#CSS-modules" class="headerlink" title="CSS modules"></a>CSS modules</h2><p>CSS modules are regular CSS files with limited scope. However, they lack types when used in a component. It becomes a problem when classes are renamed or removed.<br>You could have a CSS module like this:</p>
+<pre class="line-numbers language-css" data-language="css"><code class="language-css">&#x2F;* 📂&#x2F;HelloWorld.module.css *&#x2F;
+.helloWorld &#123;
+    color: purple
+&#125;</code></pre>
+<p>and use it (the wrong way) in a component like this:</p>
+<pre class="line-numbers language-tsx" data-language="tsx"><code class="language-tsx">&#x2F;&#x2F; 📂&#x2F;HelloWorld.tsx
+import styles from &quot;.&#x2F;HelloWorld.module.css&quot;;
+export function HelloWorld() &#123;
+  return &lt;div className&#x3D;&#123;styles.helloWorld123&#125;&gt;Hello world!&lt;&#x2F;div&gt;;
+&#125;</code></pre>
+<p>The example uses wrong classname, but our IDE, the browser and all other tooling stays silent. One of the ways to get a validation for the class names is to generate types with the help of <a target="_blank" rel="noopener" href="https://github.com/Quramy/typed-css-modules">typed-css-modules</a> and get autocomplete in our IDE with <a target="_blank" rel="noopener" href="https://github.com/mrmckeb/typescript-plugin-css-modules">typescript-plugin-css-modules</a>. Because these are CLI tools, I like to use <a target="_blank" rel="noopener" href="https://www.npmjs.com/package/npm-run-all">npm-run-all</a> and run them at development time.<br>Start by installing the dependencies:</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">$ npm install -D typed-css-modules typescript-plugin-css-modules npm-run-all</code></pre>
+<p>Next, update the scripts in your package.json file to start the development server and css modules watcher at the same time.</p>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json">&quot;scripts&quot;: &#123;
+   &quot;dev:start&quot;: &quot;vite&quot;,
+   &quot;dev:css&quot;: &quot;tcm src --watch&quot;,
+   &quot;dev&quot;: &quot;run-p dev:**&quot;,
+ &#125;</code></pre>
+<p>TCM will run in the background and automatically generate types when it detects changes in the CSS module files. This is the generated types file from my CSS modules example:</p>
+<pre class="line-numbers language-TypeScript" data-language="TypeScript"><code class="language-TypeScript">declare const styles: &#123;
+  readonly &quot;helloWorld&quot;: string;
+&#125;;
+export &#x3D; styles;</code></pre>
+<p>To enable autocomplete in your IDE add css modules plugin to <code>tsconfig.json</code>.</p>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json">&#123;
+  &quot;compilerOptions&quot;: &#123;
+    &quot;plugins&quot;: [&#123; &quot;name&quot;: &quot;typescript-plugin-css-modules&quot; &#125;]
+  &#125;
+&#125;</code></pre>
+<h2 id="Sass-SCSS"><a href="#Sass-SCSS" class="headerlink" title="Sass&#x2F;SCSS"></a>Sass&#x2F;SCSS</h2><p>For SCSS we can use <a target="_blank" rel="noopener" href="https://github.com/skovy/typed-scss-modules">typed-scss-modules</a> for type generation and <a target="_blank" rel="noopener" href="https://www.npmjs.com/package/npm-run-all">npm-run-all</a> to generate them during development time.<br>Start by installing the dependencies:</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">$ npm install -D typed-scss-modules npm-run-all</code></pre>
+<p>Next, update the scripts in your package.json file to start the development server and scss files watcher at the same time.</p>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json">&quot;scripts&quot;: &#123;
+   &quot;dev:start&quot;: &quot;vite&quot;,
+   &quot;dev:scss&quot;: &quot;typed-scss-modules src --watch --exportType default&quot;,
+   &quot;dev&quot;: &quot;run-p dev:**&quot;,
+ &#125;</code></pre>
+
+<p>This is my sample scss file:</p>
+<pre class="line-numbers language-scss" data-language="scss"><code class="language-scss">&#x2F;&#x2F; 📂&#x2F;HelloWorld.scss
+.helloWorld &#123;
+    color: purple;
+  &#125;</code></pre>
+<p>and these are the generated types:</p>
+<pre class="line-numbers language-TypeScript" data-language="TypeScript"><code class="language-TypeScript">export type Styles &#x3D; &#123;
+  &#39;helloWorld&#39;: string;
+&#125;;
+
+export type ClassNames &#x3D; keyof Styles;
+
+declare const styles: Styles;
+
+export default styles;</code></pre>
+
+<p>When used in a component, you will get autocomplete for free.</p>
+<pre class="line-numbers language-tsx" data-language="tsx"><code class="language-tsx">&#x2F;&#x2F; 📂&#x2F;HelloWorld.tsx
+import styles from &quot;.&#x2F;HelloWorld.scss&quot;;
+export function HelloWorld() &#123;
+  return &lt;div className&#x3D;&#123;styles.helloWorld&#125;&gt;Hello world!&lt;&#x2F;div&gt;;
+&#125;</code></pre>
+<h2 id="LESS"><a href="#LESS" class="headerlink" title="LESS"></a>LESS</h2><p>When it comes to LESS we can use <a target="_blank" rel="noopener" href="https://github.com/qiniu/typed-less-modules">typed-less-modules</a> to generate the types and <a target="_blank" rel="noopener" href="https://www.npmjs.com/package/npm-run-all">npm-run-all</a> to keep the file watcher running during development time.<br>Start by installing the dependencies:</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">$ npm install -D typed-less-modules npm-run-all</code></pre>
+<p>Next, update the scripts in your package.json file to start the development server and LESS files watcher at the same time.</p>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json">&quot;scripts&quot;: &#123;
+   &quot;dev:start&quot;: &quot;vite&quot;,
+    &quot;dev:less&quot;: &quot;tlm src --watch --exportType default&quot;,
+   &quot;dev&quot;: &quot;run-p dev:**&quot;,
+ &#125;</code></pre>
+<p>This is my sample LESS file:</p>
+<pre class="line-numbers language-LESS" data-language="LESS"><code class="language-LESS">&#x2F;&#x2F; 📂&#x2F;HelloWorld.less
+.helloWorld &#123;
+    color: purple
+&#125;</code></pre>
+<p>and these are the generated types:</p>
+<pre class="line-numbers language-TypeScript" data-language="TypeScript"><code class="language-TypeScript">export interface Styles &#123;
+  &#39;helloWorld&#39;: string;
+&#125;
+
+export type ClassNames &#x3D; keyof Styles;
+
+declare const styles: Styles;
+
+export default styles;</code></pre>
+<p>When used in a component, you will get autocomplete for free.</p>
+<pre class="line-numbers language-tsx" data-language="tsx"><code class="language-tsx">&#x2F;&#x2F; 📂&#x2F;HelloWorld.tsx
+import styles from &quot;.&#x2F;HelloWorld.less&quot;;
+export function HelloWorld() &#123;
+  return &lt;div className&#x3D;&#123;styles.helloWorld&#125;&gt;Hello world!&lt;&#x2F;div&gt;;
+&#125;</code></pre>
+<h2 id="Next-steps"><a href="#Next-steps" class="headerlink" title="Next steps"></a>Next steps</h2><p>If your project doesn’t have types for the CSS classes, now is the time to add them! It takes less than 15 minutes to implement and they go a long way in preventing all of the silly mistakes in the next code refactor.</p>
+
+            </div>
+        </article>
+    </div>
+</main>
+    <footer class="d-flex pb-5 pt-5 pt-md-5 border-top border-light bg-primary">
+  <div class="container">
+    <div class="row">
+      <div class="col-9">
+        <ul class="d-flex list-unstyled mb-5 mb-lg-0">
+          <li class="mr-2">
+            <a
+              rel="noopener"
+              href="https://github.com/DeepSpaceHarbor"
+              target="_blank"
+              class="btn btn-icon-only btn-pill btn-primary"
+              aria-label="github social link"
+              data-toggle="tooltip"
+              data-placement="top"
+              title="Open source projects"
+            >
+              <span aria-hidden="true" class="fab fa-github"></span>
+            </a>
+          </li>
+          <li>
+            <a
+              href="mailto:hello@borche.dev"
+              target="_blank"
+              class="btn btn-icon-only btn-pill btn-primary"
+              aria-label="email address link"
+              data-toggle="tooltip"
+              data-placement="top"
+              title="Say 👋 at hello@borche.dev"
+            >
+              <span aria-hidden="true" class="fas fa-paper-plane"></span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div class="col-3">
+        <button
+          aria-labelledby="scroll to top"
+          class="btn btn-primary animate-up-2"
+          type="button"
+          onclick="scrollToTop()"
+        >
+        <span class="back-to-top-text">
+          Back to top
+        </span>
+          <span class="ml-1">
+            <i class="fas fa-angle-double-up"></i>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</footer>
+ <!-- Core -->
+<script src="/vendor/jquery/jquery-3.5.1.min.js"></script>
+<script src="/vendor/popper.js/dist/umd/popper.min.js"></script>
+<script src="/vendor/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="/vendor/headroom.js/dist/headroom.min.js"></script>
+<!-- Vendor JS -->
+<script src="/vendor/onscreen/dist/on-screen.umd.min.js"></script>
+<script src="/vendor/nouislider/distribute/nouislider.min.js"></script>
+<script src="/vendor/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+<script src="/vendor/waypoints/lib/jquery.waypoints.min.js"></script>
+<script src="/vendor/jarallax/dist/jarallax.min.js"></script>
+<script src="/vendor/jquery.counterup/jquery.counterup.min.js"></script>
+<script src="/vendor/jquery-countdown/dist/jquery.countdown.min.js"></script>
+<script src="/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js"></script>
+<script src="/vendor/prismjs/prism.js"></script>
+<script src="/vendor/prismjs/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="/vendor/prismjs/plugins/match-braces/prism-match-braces.min.js"></script>
+<!-- Neumorphism JS -->
+<script src="/js/neumorphism.js"></script>
+
+<script>
+  function scrollToTop() {
+    $(window).scrollTop(0);
+  }
+</script>
+
+
+  </body>
+</html>

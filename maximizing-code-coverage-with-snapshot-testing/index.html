@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <meta name=viewport content="width=device-width, initial-scale=1">
+  <meta name=”robots” content="index, follow">
+  <!-- Meta -->
+  
+  <title>Maximizing code coverage with snapshot testing | Borche.dev</title>
+  <meta name="description" content="A blog post where I&#39;m trying to convince you that snapshots are a great and easy way to increase code coverage.">
+  <meta property="og:title" content="Maximizing code coverage with snapshot testing" />
+  <meta property="og:url" content="https://borche.dev/maximizing-code-coverage-with-snapshot-testing/" />
+  <meta property="og:image" content="https://borche.dev/files/images/featured/snapshot.jpg" />
+  <meta property="og:type" content="article" />
+  <meta property="og:description" content="A blog post where I&#39;m trying to convince you that snapshots are a great and easy way to increase code coverage." />
+
+  <!-- CSS -->
+  <link type="text/css"  href="/css/neumorphism.css" rel="stylesheet" />
+  <link type="text/css" href="/css/style.css" rel="stylesheet" />
+  <link
+    type="text/css"
+    href="/vendor/@fortawesome/fontawesome-free/css/all.min.css"
+    rel="stylesheet"
+  />
+  <link
+  type="text/css"
+  href="/vendor/prismjs/themes/prism-synthwave84.css"
+  rel="stylesheet"
+/>
+<link
+type="text/css"
+href="/vendor/prismjs/plugins/match-braces/prism-match-braces.css"
+rel="stylesheet"
+/>
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/favicon.png"/>
+
+</head>
+
+  <body class="match-braces">
+    <header class="header-global">
+      <nav
+        id="navbar-main"
+        aria-label="Primary navigation"
+        class="navbar navbar-main navbar-expand-lg navbar-theme-primary headroom navbar-light"
+      >
+        <div class="container position-relative">
+          <a href="/">
+            <h1 class="logo">Borche.dev</h1>
+          </a>
+        </div>
+      </nav>
+    </header>
+    <main><section class="section-header pb-0 bg-primary">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 text-center">
+                <h1 class="display-3 mb-4 px-lg-5">Maximizing code coverage with snapshot testing</h1>
+                <div class="post-meta">
+                    <span class="post-date">April 16, 2022</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="section section-sm bg-primary text-black">
+    <article class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-8 shadow-soft p-4 border border-light rounded post-content text-break">
+                <p>Snapshot testing is exactly what the name suggests. Take the component into the desired state and create a snapshot. Screenshots or a copy of the component’s HTML code are the most common types of snapshots.<br>Each test has a ground truth snapshot. When you run the tests, the new snapshot is being compared to the ground truth. If there is a difference, the test will fail. Your job is to decide if the failure happened because of a bug or an expected behavior change. While the concept is easy to grasp, I have seen projects that fail to unlock their full potential.<br>Some of the reasons include: </p>
+<ul>
+<li>Spending very little time designing tests</li>
+<li>Test scenarios that don’t increase code coverage</li>
+<li>Mocking too many things</li>
+<li>Not mocking the very thing that is crucial to the code under test</li>
+</ul>
+<p>Each of these topics deserves a separate blog post. In this one, I decided to go over 3 examples that deal with problems that arise when using snapshots in unit tests.<br>The first example comes from the Alert component. It shows a message given by the parent. When the type of alert is PageNotFound, it will show links to related pages. </p>
+<pre class="line-numbers language-tsx" data-language="tsx"><code class="language-tsx">type AlertProps &#x3D; &#123; type: &quot;PageNotFound&quot; | &quot;Other&quot;; message: string &#125;;
+
+export default function Alert(&#123; type, message &#125;: AlertProps) &#123;
+  return (
+    &lt;&gt;
+      &lt;div&gt;&#123;message&#125;&lt;&#x2F;div&gt;
+      &#123;type &#x3D;&#x3D;&#x3D; &quot;PageNotFound&quot; &amp;&amp; &lt;div&gt;Related pages: &lt;&#x2F;div&gt;&#125;
+    &lt;&#x2F;&gt;
+  );
+&#125;</code></pre>
+<p>Take a moment to think about how would you test this component?<br>You will notice that the <code>type</code> prop determines the shape of the output.<br>I came up with this:</p>
+<table class="table table-hover">
+<thead>
+  <tr>
+    <th class="border-0">Type</th>
+    <th class="border-0">Message</th>
+    <th class="border-0">Output</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td>PageNotFound</td>
+    <td>Something went wrong</td>
+    <td>
+    <pre class="line-numbers language-markup" data-language="markup"><code class="language-markup">&lt;div&gt;Something went wrong&lt;&#x2F;div&gt;
+&lt;div&gt;Related pages: &lt;&#x2F;div&gt;</code></pre>
+    </td>
+  </tr>
+  <tr>
+    <td>Other</td>
+    <td>Something went wrong</td>
+    <td>
+        <pre class="line-numbers language-markup" data-language="markup"><code class="language-markup">&lt;div&gt;Something went wrong&lt;&#x2F;div&gt;</code></pre>
+    </td>
+  </tr>
+</tbody>
+</table>
+
+<p>and this is my implementation.</p>
+<pre class="line-numbers language-typescript" data-language="typescript"><code class="language-typescript">import React from &quot;react&quot;;
+import renderer from &quot;react-test-renderer&quot;;
+import Alert from &quot;.&#x2F;Alert&quot;;
+
+it(&quot;Renders PageNotFound alert&quot;, () &#x3D;&gt; &#123;
+  const tree &#x3D; renderer.create(&lt;Alert type&#x3D;&quot;PageNotFound&quot; message&#x3D;&quot;Something went wrong&quot; &#x2F;&gt;).toJSON();
+  expect(tree).toMatchSnapshot();
+&#125;);
+
+it(&quot;Renders other alerts&quot;, () &#x3D;&gt; &#123;
+  const tree &#x3D; renderer.create(&lt;Alert type&#x3D;&quot;Other&quot; message&#x3D;&quot;Something went very very wrong&quot; &#x2F;&gt;).toJSON();
+  expect(tree).toMatchSnapshot();
+&#125;);</code></pre>
+<p>We have the desired code coverage for the alert component, but the component itself has a bug. The list of related pages is not displayed.<br>Let’s use a new component for that. This component will receive a page name, make an API request to get a list of related pages and display that list.</p>
+<pre class="line-numbers language-tsx" data-language="tsx"><code class="language-tsx">import React, &#123; useLayoutEffect, useState &#125; from &quot;react&quot;;
+
+type RelatedPage &#x3D; &#123;
+  name: string;
+  url: string;
+&#125;;
+
+export default function RelatedPages(&#123; pageName &#x3D; &quot;&quot; &#125;: &#123; pageName?: string &#125;) &#123;
+  const [relatedPages, setRelatedPages] &#x3D; useState&lt;RelatedPage[]&gt;([]);
+
+  const fetchRelatedPages &#x3D; async () &#x3D;&gt; &#123;
+    const response &#x3D; await fetch(&#96;https:&#x2F;&#x2F;example.com&#x2F;related&#x2F;$&#123;pageName&#125;&#96;);
+    const json &#x3D; await response.json();
+    setRelatedPages(json);
+  &#125;;
+
+  useLayoutEffect(() &#x3D;&gt; &#123;
+    fetchRelatedPages();
+    &#x2F;&#x2F; eslint-disable-next-line react-hooks&#x2F;exhaustive-deps
+  &#125;, [pageName]);
+
+  return (
+    &lt;div&gt;
+      &lt;&gt;
+        &lt;h2&gt;Related Pages&lt;&#x2F;h2&gt;
+        &#123;relatedPages.map((page) &#x3D;&gt; &#123;
+          return (
+            &lt;div key&#x3D;&#123;page.name&#125;&gt;
+              &lt;a href&#x3D;&#123;page.url&#125;&gt;&#123;page.name&#125;&lt;&#x2F;a&gt;
+            &lt;&#x2F;div&gt;
+          );
+        &#125;)&#125;
+      &lt;&#x2F;&gt;
+    &lt;&#x2F;div&gt;
+  );
+&#125;</code></pre>
+<p>The happy scenario is straightforward, provide a page name, and check if the list from API gets shown.</p>
+<pre class="line-numbers language-jsx" data-language="jsx"><code class="language-jsx">import React from &quot;react&quot;;
+import &#123; rest &#125; from &quot;msw&quot;;
+import &#123; setupServer &#125; from &quot;msw&#x2F;node&quot;;
+import &#123; render, waitFor, screen &#125; from &quot;@testing-library&#x2F;react&quot;;
+import RelatedPages from &quot;.&#x2F;RelatedPages&quot;;
+
+const mockedRelatedPages &#x3D; [
+  &#123;
+    name: &quot;Page 1&quot;,
+    URL: &quot;https:&#x2F;&#x2F;www.google.com&#x2F;&quot;,
+  &#125;,
+  &#123;
+    name: &quot;Page 4&quot;,
+    URL: &quot;https:&#x2F;&#x2F;www.google.com&#x2F;&quot;,
+  &#125;,
+  &#123;
+    name: &quot;Page 99&quot;,
+    URL: &quot;https:&#x2F;&#x2F;www.google.com&#x2F;&quot;,
+  &#125;,
+];
+
+it(&quot;Shows the correct related pages&quot;, async () &#x3D;&gt; &#123;
+  &#x2F;&#x2F;Mock API for the  success scenario.
+  const server &#x3D; setupServer(
+    rest.get(&quot;https:&#x2F;&#x2F;example.com&#x2F;related&#x2F;badpage&quot;, (req, res, ctx) &#x3D;&gt; &#123;
+      return res(ctx.status(200), ctx.json(mockedRelatedPages));
+    &#125;)
+  );
+  server.listen(&#123;
+    onUnhandledRequest: &quot;warn&quot;,
+  &#125;);
+
+  const &#123; asFragment &#125; &#x3D; render(&lt;RelatedPages pageName&#x3D;&quot;badpage&quot; &#x2F;&gt;);
+  await waitFor(() &#x3D;&gt; &#123;
+    return expect(screen.getByText(&quot;Page 1&quot;)).toBeTruthy();
+  &#125;);
+
+  expect(asFragment()).toMatchSnapshot();
+  server.close();
+&#125;);</code></pre>
+<p>The first thing I did was to create a mock response to the related pages API call. Then with the help of <a target="_blank" rel="noopener" href="https://mswjs.io/">MSW</a> I started a server that listens to my request and returns the mock data. The test is waiting for “page 1” to appear before taking the snapshot.<br>For the final example, we will create a bug report functionality.<br>The component should display a button with the text: Report a problem. Click on the button should open a modal with a form comprising of name, email, and description of the problem. Users should have the option to either close the modal or submit the bug report. The modal should have text for successful and failed bug reports (API errors).<br>One naive implementation of the form might look like this:</p>
+<pre class="line-numbers language-tsx" data-language="tsx"><code class="language-tsx">import React, &#123; useState &#125; from &quot;react&quot;;
+
+export default function BugReport() &#123;
+  const [openDialog, setOpenDialog] &#x3D; useState(false);
+  const [name, setName] &#x3D; useState(&quot;&quot;);
+  const [email, setEmail] &#x3D; useState(&quot;&quot;);
+  const [description, setDescription] &#x3D; useState(&quot;&quot;);
+  const [error, setError] &#x3D; useState&lt;string | undefined&gt;();
+  const [success, setSuccess] &#x3D; useState(false);
+
+  async function handleSubmit(event: React.FormEvent&lt;HTMLFormElement&gt;) &#123;
+    event.preventDefault();
+    try &#123;
+      await fetch(&quot;https:&#x2F;&#x2F;example.com&#x2F;bugreport&quot;, &#123;
+        method: &quot;POST&quot;,
+        headers: &#123;
+          &quot;Content-Type&quot;: &quot;application&#x2F;json&quot;,
+        &#125;,
+        body: JSON.stringify(&#123;
+          name: name,
+          email: email,
+          description: description,
+        &#125;),
+      &#125;).then((result) &#x3D;&gt; &#123;
+        &#x2F;&#x2F;Here body is not ready yet, throw promise
+        if (!result.ok) throw result;
+        return result.json();
+      &#125;);
+      setSuccess(true);
+      setError(undefined);
+    &#125; catch (err) &#123;
+      setError(&quot;Something went wrong&quot;);
+    &#125;
+  &#125;
+
+  return (
+    &lt;&gt;
+      &lt;button onClick&#x3D;&#123;() &#x3D;&gt; setOpenDialog(true)&#125;&gt;Report a problem&lt;&#x2F;button&gt;
+      &lt;dialog open&#x3D;&#123;openDialog&#125;&gt;
+        &lt;h4&gt;Bug report!&lt;&#x2F;h4&gt;
+        &lt;br &#x2F;&gt;
+        &#123;success &amp;&amp; &lt;p&gt;Thank you for your report!&lt;&#x2F;p&gt;&#125;
+        &#123;!success &amp;&amp; (
+          &lt;&gt;
+            &#123;error &amp;&amp; &lt;p&gt;&#123;error&#125;&lt;&#x2F;p&gt;&#125;
+            &lt;form onSubmit&#x3D;&#123;handleSubmit&#125;&gt;
+              &lt;label&gt;
+                Name:
+                &lt;input
+                  type&#x3D;&quot;text&quot;
+                  name&#x3D;&quot;name&quot;
+                  required
+                  value&#x3D;&#123;name&#125;
+                  onChange&#x3D;&#123;(event) &#x3D;&gt; setName(event.target.value)&#125;
+                &#x2F;&gt;
+              &lt;&#x2F;label&gt;
+              &lt;br &#x2F;&gt;
+              &lt;label&gt;
+                Email:
+                &lt;input
+                  type&#x3D;&quot;email&quot;
+                  name&#x3D;&quot;email&quot;
+                  required
+                  value&#x3D;&#123;email&#125;
+                  onChange&#x3D;&#123;(event) &#x3D;&gt; setEmail(event.target.value)&#125;
+                &#x2F;&gt;
+              &lt;&#x2F;label&gt;
+              &lt;br &#x2F;&gt;
+              &lt;label&gt;
+                Description:
+                &lt;br &#x2F;&gt;
+                &lt;textarea
+                  name&#x3D;&quot;description&quot;
+                  required
+                  value&#x3D;&#123;description&#125;
+                  onChange&#x3D;&#123;(event) &#x3D;&gt; setDescription(event.target.value)&#125;
+                &#x2F;&gt;
+              &lt;&#x2F;label&gt;
+              &lt;br &#x2F;&gt;
+              &lt;input type&#x3D;&quot;submit&quot; value&#x3D;&quot;Send report&quot; &#x2F;&gt;
+            &lt;&#x2F;form&gt;
+            &lt;br &#x2F;&gt;
+          &lt;&#x2F;&gt;
+        )&#125;
+        &lt;button
+          onClick&#x3D;&#123;() &#x3D;&gt; &#123;
+            setOpenDialog(false);
+            setError(undefined);
+            setSuccess(false);
+          &#125;&#125;&gt;
+          Close
+        &lt;&#x2F;button&gt;
+      &lt;&#x2F;dialog&gt;
+    &lt;&#x2F;&gt;
+  );
+&#125;</code></pre>
+<p>Based on the problem description and the code, I identified four distinct states:</p>
+<ol>
+<li>The “Report a problem” button</li>
+<li>The initial bug report modal</li>
+<li>Successful bug report</li>
+<li>Failed bug report (ex: API errors)</li>
+</ol>
+<p><img src="/files/images/posts/increase-code-coverage-with-snapshot-testing/bug-report-states.svg" alt="bug-report-states.svg"><br>The first test will check if the Report a problem button gets shown to the user.<br>The second one tests the open and close functionality. The third and fourth tests will verify the successful and failed bug report states.</p>
+<pre class="line-numbers language-tsx" data-language="tsx"><code class="language-tsx">import React from &quot;react&quot;;
+import &#123; rest &#125; from &quot;msw&quot;;
+import &#123; setupServer &#125; from &quot;msw&#x2F;node&quot;;
+import &#123; render, waitFor, screen, fireEvent &#125; from &quot;@testing-library&#x2F;react&quot;;
+import BugReport from &quot;.&#x2F;BugReport&quot;;
+
+it(&quot;Shows the report a problem button&quot;, async () &#x3D;&gt; &#123;
+  const &#123; asFragment &#125; &#x3D; render(&lt;BugReport &#x2F;&gt;);
+  expect(asFragment()).toMatchSnapshot();
+&#125;);
+
+it(&quot;Opens the report bug modal&quot;, async () &#x3D;&gt; &#123;
+  const &#123; asFragment &#125; &#x3D; render(&lt;BugReport &#x2F;&gt;);
+  fireEvent.click(screen.getByText(&#x2F;Report a problem&#x2F;i));
+  expect(asFragment()).toMatchSnapshot();
+  fireEvent.click(screen.getByText(&#x2F;Close&#x2F;i));
+  expect(asFragment()).toMatchSnapshot();
+&#125;);
+
+it(&quot;Submits a successful bug report&quot;, async () &#x3D;&gt; &#123;
+  &#x2F;&#x2F;Mock API for the  success scenario.
+  const server &#x3D; setupServer(
+    rest.post(&quot;https:&#x2F;&#x2F;example.com&#x2F;bugreport&quot;, (req, res, ctx) &#x3D;&gt; &#123;
+      return res(ctx.status(200), ctx.json(&#123; status: &quot;success&quot; &#125;));
+    &#125;)
+  );
+  server.listen(&#123;
+    onUnhandledRequest: &quot;warn&quot;,
+  &#125;);
+  const &#123; asFragment &#125; &#x3D; render(&lt;BugReport &#x2F;&gt;);
+  fireEvent.click(screen.getByText(&#x2F;Report a problem&#x2F;i));
+  fireEvent.change(screen.getByLabelText(&quot;Name:&quot;), &#123; target: &#123; value: &quot;Tony Stark&quot; &#125; &#125;);
+  fireEvent.change(screen.getByLabelText(&quot;Email:&quot;), &#123; target: &#123; value: &quot;tony@StarkIndustries.com&quot; &#125; &#125;);
+  fireEvent.change(screen.getByLabelText(&quot;Description:&quot;), &#123;
+    target: &#123; value: &quot;Help! I can&#39;t find the reset password page.&quot; &#125;,
+  &#125;);
+  fireEvent.click(screen.getByText(&#x2F;Send report&#x2F;i));
+  await waitFor(() &#x3D;&gt; &#123;
+    return expect(screen.getByText(&quot;Thank you for your report!&quot;)).toBeTruthy();
+  &#125;);
+  expect(asFragment()).toMatchSnapshot();
+  server.close();
+&#125;);
+
+it(&quot;Submits an unsuccessful bug report&quot;, async () &#x3D;&gt; &#123;
+  &#x2F;&#x2F;Mock API for the failure scenario.
+  const server &#x3D; setupServer(
+    rest.post(&quot;https:&#x2F;&#x2F;example.com&#x2F;bugreport&quot;, (req, res, ctx) &#x3D;&gt; &#123;
+      return res(ctx.status(400));
+    &#125;)
+  );
+  server.listen(&#123;
+    onUnhandledRequest: &quot;warn&quot;,
+  &#125;);
+  const &#123; asFragment &#125; &#x3D; render(&lt;BugReport &#x2F;&gt;);
+  fireEvent.click(screen.getByText(&#x2F;Report a problem&#x2F;i));
+  fireEvent.change(screen.getByLabelText(&quot;Name:&quot;), &#123; target: &#123; value: &quot;Tony Stark&quot; &#125; &#125;);
+  fireEvent.change(screen.getByLabelText(&quot;Email:&quot;), &#123; target: &#123; value: &quot;tony@StarkIndustries.com&quot; &#125; &#125;);
+  fireEvent.change(screen.getByLabelText(&quot;Description:&quot;), &#123;
+    target: &#123; value: &quot;Help! I can&#39;t find the reset password page.&quot; &#125;,
+  &#125;);
+  fireEvent.click(screen.getByText(&#x2F;Send report&#x2F;i));
+  await waitFor(() &#x3D;&gt; &#123;
+    return expect(screen.getByText(&quot;Something went wrong&quot;)).toBeTruthy();
+  &#125;);
+  expect(asFragment()).toMatchSnapshot();
+  server.close();
+&#125;);</code></pre>
+<p>Snapshots are a great and easy way to increase code coverage.<br>To get the most out of them, pay close attention to snapshot changes during code review. Follow the best coding practices to ensure you don’t get lost in them when the project gets bigger.<br>And don’t be afraid to combine them with other types of tests! As great as they are, snapshots are not the solution to all your testing problems.</p>
+
+            </div>
+        </article>
+    </div>
+</main>
+    <footer class="d-flex pb-5 pt-5 pt-md-5 border-top border-light bg-primary">
+  <div class="container">
+    <div class="row">
+      <div class="col-9">
+        <ul class="d-flex list-unstyled mb-5 mb-lg-0">
+          <li class="mr-2">
+            <a
+              rel="noopener"
+              href="https://github.com/DeepSpaceHarbor"
+              target="_blank"
+              class="btn btn-icon-only btn-pill btn-primary"
+              aria-label="github social link"
+              data-toggle="tooltip"
+              data-placement="top"
+              title="Open source projects"
+            >
+              <span aria-hidden="true" class="fab fa-github"></span>
+            </a>
+          </li>
+          <li>
+            <a
+              href="mailto:hello@borche.dev"
+              target="_blank"
+              class="btn btn-icon-only btn-pill btn-primary"
+              aria-label="email address link"
+              data-toggle="tooltip"
+              data-placement="top"
+              title="Say 👋 at hello@borche.dev"
+            >
+              <span aria-hidden="true" class="fas fa-paper-plane"></span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div class="col-3">
+        <button
+          aria-labelledby="scroll to top"
+          class="btn btn-primary animate-up-2"
+          type="button"
+          onclick="scrollToTop()"
+        >
+        <span class="back-to-top-text">
+          Back to top
+        </span>
+          <span class="ml-1">
+            <i class="fas fa-angle-double-up"></i>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</footer>
+ <!-- Core -->
+<script src="/vendor/jquery/jquery-3.5.1.min.js"></script>
+<script src="/vendor/popper.js/dist/umd/popper.min.js"></script>
+<script src="/vendor/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="/vendor/headroom.js/dist/headroom.min.js"></script>
+<!-- Vendor JS -->
+<script src="/vendor/onscreen/dist/on-screen.umd.min.js"></script>
+<script src="/vendor/nouislider/distribute/nouislider.min.js"></script>
+<script src="/vendor/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+<script src="/vendor/waypoints/lib/jquery.waypoints.min.js"></script>
+<script src="/vendor/jarallax/dist/jarallax.min.js"></script>
+<script src="/vendor/jquery.counterup/jquery.counterup.min.js"></script>
+<script src="/vendor/jquery-countdown/dist/jquery.countdown.min.js"></script>
+<script src="/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js"></script>
+<script src="/vendor/prismjs/prism.js"></script>
+<script src="/vendor/prismjs/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="/vendor/prismjs/plugins/match-braces/prism-match-braces.min.js"></script>
+<!-- Neumorphism JS -->
+<script src="/js/neumorphism.js"></script>
+
+<script>
+  function scrollToTop() {
+    $(window).scrollTop(0);
+  }
+</script>
+
+
+  </body>
+</html>

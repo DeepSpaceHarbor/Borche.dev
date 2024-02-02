@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <meta name=viewport content="width=device-width, initial-scale=1">
+  <meta name=”robots” content="index, follow">
+  <!-- Meta -->
+  
+  <title>Run Cypress tests in Google Cloud Build | Borche.dev</title>
+  <meta name="description" content="Real world example of Cypress tests running in Google Cloud Build.">
+  <meta property="og:title" content="Run Cypress tests in Google Cloud Build" />
+  <meta property="og:url" content="https://borche.dev/run-cypress-tests-in-google-cloud-build/" />
+  <meta property="og:image" content="https://borche.dev/files/images/featured/google-cloud.jpg" />
+  <meta property="og:type" content="article" />
+  <meta property="og:description" content="Real world example of Cypress tests running in Google Cloud Build." />
+
+  <!-- CSS -->
+  <link type="text/css"  href="/css/neumorphism.css" rel="stylesheet" />
+  <link type="text/css" href="/css/style.css" rel="stylesheet" />
+  <link
+    type="text/css"
+    href="/vendor/@fortawesome/fontawesome-free/css/all.min.css"
+    rel="stylesheet"
+  />
+  <link
+  type="text/css"
+  href="/vendor/prismjs/themes/prism-synthwave84.css"
+  rel="stylesheet"
+/>
+<link
+type="text/css"
+href="/vendor/prismjs/plugins/match-braces/prism-match-braces.css"
+rel="stylesheet"
+/>
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/favicon.png"/>
+
+</head>
+
+  <body class="match-braces">
+    <header class="header-global">
+      <nav
+        id="navbar-main"
+        aria-label="Primary navigation"
+        class="navbar navbar-main navbar-expand-lg navbar-theme-primary headroom navbar-light"
+      >
+        <div class="container position-relative">
+          <a href="/">
+            <h1 class="logo">Borche.dev</h1>
+          </a>
+        </div>
+      </nav>
+    </header>
+    <main><section class="section-header pb-0 bg-primary">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 text-center">
+                <h1 class="display-3 mb-4 px-lg-5">Run Cypress tests in Google Cloud Build</h1>
+                <div class="post-meta">
+                    <span class="post-date">April 15, 2022</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="section section-sm bg-primary text-black">
+    <article class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-8 shadow-soft p-4 border border-light rounded post-content text-break">
+                <p>On a recent project I got the task of setting up end-to-end tests using Cypress. The project is hosted entirely on the Google cloud platform and has unit tests running as Cloud Build check. We decided to follow the same method for the Cypress tests.<br>There are two different approaches for this, you could set up a custom docker file and run the tests inside the container, or use the <a target="_blank" rel="noopener" href="https://hub.docker.com/u/cypress">official Cypress docker image</a> as part of the Cloud Build step.<br><a target="_blank" rel="noopener" href="https://github.com/bahmutov/google-cloud-build-example">Gleb Bahmutov</a> and <a target="_blank" rel="noopener" href="https://applitools.com/blog/google-cloud-build/">Applitools</a> have already shared code and tutorials on the custom docker file approach.<br>I will show you a slightly different way to achieve the same result.<br>To keep things simple, let’s create a new project and add Cypress.</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">$ yarn init
+$ yarn add cypress</code></pre>
+<p>This is the initial Cloud Build config that will install dependencies and run the tests.</p>
+<pre class="line-numbers language-yaml" data-language="yaml"><code class="language-yaml">steps:
+  ###
+  # Install dependencies
+  #
+  - name: &#39;gcr.io&#x2F;cloud-builders&#x2F;yarn&#39;
+    id: install-dependencies
+    entrypoint: &#39;yarn&#39;
+    args:
+      - &#39;install&#39;
+  ###
+  # Run cypress tests
+  #
+  - name: &#39;cypress&#x2F;base&#39;
+    waitFor: 
+      - install-dependencies
+    id: run-tests
+    entrypoint: &#39;bash&#39;
+    args:
+      - &#39;-c&#39;
+      - &#39;yarn cypress run&#39;</code></pre>
+<p>Go ahead and trigger the Cloud Build check. At this stage, everything should be successful 🥳.<br>The next step is to collect the artifacts (videos, screenshots, test reports, etc) produced by Cypress.<br>This is done by capturing the exit status code of the Cypress test runner and saving it to a file. In a separate step we can handle the artifacts upload, and exit with the status code that came from the Cypress test runner.</p>
+<pre class="line-numbers language-yaml" data-language="yaml"><code class="language-yaml">steps:
+  ###
+  # Install dependencies
+  #
+  - name: &#39;gcr.io&#x2F;cloud-builders&#x2F;yarn&#39;
+    id: install-dependencies
+    entrypoint: &#39;yarn&#39;
+    args:
+      - &#39;install&#39;
+  ###
+  # Run cypress tests
+  #
+  - name: &#39;cypress&#x2F;base&#39;
+    waitFor: 
+      - install-dependencies
+    id: run-tests
+    entrypoint: &#39;bash&#39;
+    args:
+      - &#39;-c&#39;
+      -  yarn cypress run;
+         echo $? &gt; .result;
+         echo &quot;Testing is completed!&quot;
+         
+  ###
+  # Save artifacts
+  #
+  - name: &#39;gcr.io&#x2F;google.com&#x2F;cloudsdktool&#x2F;cloud-sdk&#39;
+    id: save-artifacts
+    waitFor:
+      - run-tests
+    entrypoint: &#39;bash&#39;
+    args:
+      - &#39;-c&#39;
+      - |
+        echo &quot;Uploading artifacts...&quot;
+        exit $(&lt; .result);</code></pre>
+
+<p>The reason for modifying the exit code of these steps is because the status of a single Cloud Build step is determined by the exit code of the last executed command. And we know that if the previous step fails, the build execution will stop.<br>If we don’ modify the exit code, a failed test will stop the build execution right before the save-artifacts step is executed and leave us without the much-needed data to debug the failure.<br>If we tried to save artifacts in the run-tests step, the last executed command would be saving artifacts. This command always succeeds and gives us the green status, even when tests have failed!</p>
+
+            </div>
+        </article>
+    </div>
+</main>
+    <footer class="d-flex pb-5 pt-5 pt-md-5 border-top border-light bg-primary">
+  <div class="container">
+    <div class="row">
+      <div class="col-9">
+        <ul class="d-flex list-unstyled mb-5 mb-lg-0">
+          <li class="mr-2">
+            <a
+              rel="noopener"
+              href="https://github.com/DeepSpaceHarbor"
+              target="_blank"
+              class="btn btn-icon-only btn-pill btn-primary"
+              aria-label="github social link"
+              data-toggle="tooltip"
+              data-placement="top"
+              title="Open source projects"
+            >
+              <span aria-hidden="true" class="fab fa-github"></span>
+            </a>
+          </li>
+          <li>
+            <a
+              href="mailto:hello@borche.dev"
+              target="_blank"
+              class="btn btn-icon-only btn-pill btn-primary"
+              aria-label="email address link"
+              data-toggle="tooltip"
+              data-placement="top"
+              title="Say 👋 at hello@borche.dev"
+            >
+              <span aria-hidden="true" class="fas fa-paper-plane"></span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div class="col-3">
+        <button
+          aria-labelledby="scroll to top"
+          class="btn btn-primary animate-up-2"
+          type="button"
+          onclick="scrollToTop()"
+        >
+        <span class="back-to-top-text">
+          Back to top
+        </span>
+          <span class="ml-1">
+            <i class="fas fa-angle-double-up"></i>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</footer>
+ <!-- Core -->
+<script src="/vendor/jquery/jquery-3.5.1.min.js"></script>
+<script src="/vendor/popper.js/dist/umd/popper.min.js"></script>
+<script src="/vendor/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="/vendor/headroom.js/dist/headroom.min.js"></script>
+<!-- Vendor JS -->
+<script src="/vendor/onscreen/dist/on-screen.umd.min.js"></script>
+<script src="/vendor/nouislider/distribute/nouislider.min.js"></script>
+<script src="/vendor/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+<script src="/vendor/waypoints/lib/jquery.waypoints.min.js"></script>
+<script src="/vendor/jarallax/dist/jarallax.min.js"></script>
+<script src="/vendor/jquery.counterup/jquery.counterup.min.js"></script>
+<script src="/vendor/jquery-countdown/dist/jquery.countdown.min.js"></script>
+<script src="/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js"></script>
+<script src="/vendor/prismjs/prism.js"></script>
+<script src="/vendor/prismjs/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="/vendor/prismjs/plugins/match-braces/prism-match-braces.min.js"></script>
+<!-- Neumorphism JS -->
+<script src="/js/neumorphism.js"></script>
+
+<script>
+  function scrollToTop() {
+    $(window).scrollTop(0);
+  }
+</script>
+
+
+  </body>
+</html>

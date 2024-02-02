@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <meta name=viewport content="width=device-width, initial-scale=1">
+  <meta name=”robots” content="index, follow">
+  <!-- Meta -->
+  
+  <title>Preventing unauthorized code execution in React.js | Borche.dev</title>
+  <meta name="description" content="Your web app got hacked. The attacker modified the source code, and your customers downloaded the malicious version. What mechanisms do you have in place to prevent and minimize the damage?">
+  <meta property="og:title" content="Preventing unauthorized code execution in React.js" />
+  <meta property="og:url" content="https://borche.dev/preventing-unauthorized-code-execution-in-react-js/" />
+  <meta property="og:image" content="https://borche.dev/files/images/featured/hack-macbook-money.jpg" />
+  <meta property="og:type" content="article" />
+  <meta property="og:description" content="Your web app got hacked. The attacker modified the source code, and your customers downloaded the malicious version. What mechanisms do you have in place to prevent and minimize the damage?" />
+
+  <!-- CSS -->
+  <link type="text/css"  href="/css/neumorphism.css" rel="stylesheet" />
+  <link type="text/css" href="/css/style.css" rel="stylesheet" />
+  <link
+    type="text/css"
+    href="/vendor/@fortawesome/fontawesome-free/css/all.min.css"
+    rel="stylesheet"
+  />
+  <link
+  type="text/css"
+  href="/vendor/prismjs/themes/prism-synthwave84.css"
+  rel="stylesheet"
+/>
+<link
+type="text/css"
+href="/vendor/prismjs/plugins/match-braces/prism-match-braces.css"
+rel="stylesheet"
+/>
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/favicon.png"/>
+
+</head>
+
+  <body class="match-braces">
+    <header class="header-global">
+      <nav
+        id="navbar-main"
+        aria-label="Primary navigation"
+        class="navbar navbar-main navbar-expand-lg navbar-theme-primary headroom navbar-light"
+      >
+        <div class="container position-relative">
+          <a href="/">
+            <h1 class="logo">Borche.dev</h1>
+          </a>
+        </div>
+      </nav>
+    </header>
+    <main><section class="section-header pb-0 bg-primary">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 text-center">
+                <h1 class="display-3 mb-4 px-lg-5">Preventing unauthorized code execution in React.js</h1>
+                <div class="post-meta">
+                    <span class="post-date">April 17, 2022</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="section section-sm bg-primary text-black">
+    <article class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-8 shadow-soft p-4 border border-light rounded post-content text-break">
+                <p>Cybercrime is a serious business. Look at the <a target="_blank" rel="noopener" href="https://threatbutt.com/map/">pew pew maps</a> that show it all. Everyone and everything is under attack 24&#x2F;7. One could argue that security knowledge is a must-have for every developer.</p>
+<p>At the highest level, there are two main ways to hack a web app:</p>
+<ul>
+<li>Change the source code and serve malicious code to the user.</li>
+<li>Turn input sources such as database entries or URL parameters into malicious content.</li>
+</ul>
+<p>With proper configuration, modern browsers can detect and stop these attacks.</p>
+<h2 id="Stopping-the-malicious-client"><a href="#Stopping-the-malicious-client" class="headerlink" title="Stopping the malicious client"></a>Stopping the malicious client</h2><p>One way to introduce malicious code is to gain access to the server hosting the app and change the source code. A variation of this attack is gaining access to the CI&#x2F;CD pipeline. After the code changes, the server will serve the malicious version to the user.<br><strong>Subresource integrity(SRI)</strong> is the first line of defense against this type of attack. To activate these checks add integrity attribute to resources (<a target="_blank" rel="noopener" href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link#attributes">link</a> and <a target="_blank" rel="noopener" href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attributes">script</a> tags).<br>The integrity attribute should contain the cryptographic signature of the resource.<br>For example:</p>
+<pre class="line-numbers language-markup" data-language="markup"><code class="language-markup">&lt;script src&#x3D;&quot;https:&#x2F;&#x2F;example.com&#x2F;example-library.js&quot; integrity&#x3D;&quot;sha384-qVuAfXRKap7fdgcCY5uykM6+R9GqQ8K&#x2F;uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC&quot; crossorigin&#x3D;&quot;anonymous&quot;&gt;&lt;&#x2F;script&gt;</code></pre>
+
+<p>The browser then compares the cryptographic signature of the downloaded resource with the cryptographic signature from the integrity attribute.<br>If the signatures don’t match, the browser will refuse to execute the downloaded resource and show a network error.</p>
+<p>For libraries without SRI, tools such as <a target="_blank" rel="noopener" href="https://www.srihash.org/">srihash.org</a> can compute the cryptographic hash. In-depth details about subresource integrity are available on the <a target="_blank" rel="noopener" href="https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity">MDN website</a> and the official <a target="_blank" rel="noopener" href="https://www.w3.org/TR/SRI/">specification</a>.</p>
+<p><strong>The Content Security Policy(CSP) header</strong> is another security feature at our disposal.<br>It consists of different directives that limit how different types of resources behave. There are many versions(levels) of the standard.<br>Each version introduces new directives that allow for more fine-tuning.</p>
+<p>A policy that allows everything but only when it comes from the same origin looks like this:</p>
+<pre class="line-numbers language-http" data-language="http"><code class="language-http">Content-Security-Policy: default-src &#39;self&#39;;</code></pre>
+<p>Policy for embedding scripts from external sources might look like this:</p>
+<pre class="line-numbers language-http" data-language="http"><code class="language-http">Content-Security-Policy: script-src &#39;self&#39; www.google-analytics.com service.example.com;</code></pre>
+<p>The same patterns are applied when specifying the behavior of other resources.</p>
+<p>Writing CSP policy from scratch can be tedious, but some tools can help.<br>The <a target="_blank" rel="noopener" href="https://report-uri.com/home/generate">CSP generator tool</a> from Report URI is a great starting point.<br>It has a list of common directives and an explanation for each directive. After setting up the rules for each resource, it will generate a content security policy for you. If you’re working on a project where defining the policy is hard, the <a target="_blank" rel="noopener" href="https://csper.io/docs/generating-content-security-policy">CSP generator</a> from Csper can help. It’s a plugin that collects info about the resources loaded by the web app and creates starter policy.<br>After you’ve created your policy, it’s recommended that you test using report only mode. This will instruct the browser to use the policy and report back the errors, without breaking the web app. You can do this by setting the header name to <code>Content-Security-Policy-Report-Only</code>.<br>To test your policy without deploying use browser plugins such as <a target="_blank" rel="noopener" href="https://addons.mozilla.org/en-US/firefox/addon/laboratory-by-mozilla/">Laboratory</a>.</p>
+<h2 id="Dealing-with-malicious-input"><a href="#Dealing-with-malicious-input" class="headerlink" title="Dealing with malicious input"></a>Dealing with malicious input</h2><p>An example of a malicious input would be someone using javascript code instead of their name. If the web app is vulnerable to XSS attacks and has “all users” page, the code will run and cause problems.<br>Another example is changing the query string parameters to include unwanted code. The new link can be sent to the victims through a phishing campaign.<br>React.js applies auto-escaping by default. </p>
+<pre class="line-numbers language-jsx" data-language="jsx"><code class="language-jsx">export default function Demo() &#123;
+  const title &#x3D; maliciousInput;
+  &#x2F;&#x2F;This is safe because the input is sanitized.
+  return &lt;h1&gt;&#123;title&#125;&lt;&#x2F;h1&gt;;
+&#125;</code></pre>
+<p>But this protection doesn’t apply to props and escape hatches.<br>Spreading of user controlled props is a common problem.</p>
+<pre class="line-numbers language-jsx" data-language="jsx"><code class="language-jsx">const maliciousInput &#x3D; &quot;&lt;img onerror&#x3D;&#39;alert(\&quot;hacked\&quot;)&#39; src&#x3D;&#39;123&#39;&#x2F;&gt;&quot;;
+
+export default function Demo() &#123;
+  const maliciousProps &#x3D; &#123;
+    dangerouslySetInnerHTML: &#123;
+      __html: maliciousInput,
+    &#125;,
+  &#125;;
+  &#x2F;&#x2F;This is dangerous. User controlled props can introduce malicious code.
+  return &lt;div &#123;...maliciousProps&#125; &#x2F;&gt;;
+&#125;</code></pre>
+<p>A single user controlled prop can also be unsafe, even more so when combined with an <a target="_blank" rel="noopener" href="https://reactjs.org/docs/design-principles.html#escape-hatches">escape hatch</a>.</p>
+<pre class="line-numbers language-jsx" data-language="jsx"><code class="language-jsx">const maliciousInput &#x3D; &quot;javascript:alert(&#39;hacked&#39;)&quot;;
+
+export default function Demo() &#123;
+  const url &#x3D; maliciousInput;
+  &#x2F;&#x2F;This is dangerous.
+  return &lt;a href&#x3D;&#123;url&#125;&gt;My Website&lt;&#x2F;a&gt;;
+&#125;</code></pre>
+<pre class="line-numbers language-jsx" data-language="jsx"><code class="language-jsx">import &#123; useRef &#125; from &quot;react&quot;;
+
+const maliciousInput &#x3D; &quot;&lt;img onerror&#x3D;&#39;alert(\&quot;hacked\&quot;)&#39; src&#x3D;&#39;123&#39;&#x2F;&gt;&quot;;
+
+export default function Demo() &#123;
+  const maliciousRef &#x3D; useRef();
+  function sayHello() &#123;
+    &#x2F;&#x2F;This is dangerous. The content of the input is not sanitized when escape hatch is used.
+    maliciousRef.current.innerHTML &#x3D; maliciousInput;
+  &#125;
+  return (
+    &lt;&gt;
+      &lt;button onClick&#x3D;&#123;sayHello&#125;&gt;Say hello&lt;&#x2F;button&gt;
+      &lt;div ref&#x3D;&#123;maliciousRef&#125;&gt;Hi 👋&lt;&#x2F;div&gt;
+    &lt;&#x2F;&gt;
+  );
+&#125;</code></pre>
+
+<p>If you are working on an app that requires rendering of html code you should sanitize the input. <a target="_blank" rel="noopener" href="https://github.com/cure53/DOMPurify">DOMPurify</a> is one of the recommended libraries to do this.<br>It takes an html code and removes everything that might trigger an XSS attack.</p>
+<pre class="line-numbers language-jsx" data-language="jsx"><code class="language-jsx">import DOMPurify from &quot;dompurify&quot;;
+
+const maliciousInput &#x3D; &quot;&lt;img onerror&#x3D;&#39;alert(\&quot;hacked\&quot;)&#39; src&#x3D;&#39;123&#39;&#x2F;&gt;&quot;;
+
+export default function Demo() &#123;
+  return (
+    &lt;div
+      &#x2F;&#x2F;This is safe. DOMPurify will remove the dangerous code.
+      dangerouslySetInnerHTML&#x3D;&#123;&#123;
+        __html: DOMPurify.sanitize(maliciousInput),
+      &#125;&#125;
+    &#x2F;&gt;
+  );
+&#125;</code></pre>
+
+<p>In cases when you’re working with a subset of html, you can also use libraries such as <a target="_blank" rel="noopener" href="https://www.npmjs.com/package/sanitize-html">sanitize-html</a>. With sanitize-html you can define the set of allowed tags, attributes, etc.</p>
+<pre class="line-numbers language-jsx" data-language="jsx"><code class="language-jsx">import sanitizeHtml from &quot;sanitize-html&quot;;
+
+const maliciousInput &#x3D; &quot;&lt;img onerror&#x3D;&#39;alert(\&quot;hacked\&quot;)&#39; src&#x3D;&#39;123&#39;&#x2F;&gt; &lt;b&gt;hello world!&lt;&#x2F;b&gt;&quot;;
+
+export default function Demo() &#123;
+  &#x2F;&#x2F; Allow only a super restricted set of tags and attributes
+  const clean &#x3D; sanitizeHtml(maliciousInput, &#123;
+    allowedTags: [&quot;b&quot;, &quot;p&quot;],
+    allowedAttributes: &#123;&#125;,
+  &#125;);
+  return (
+    &lt;div &#x2F;&#x2F;The output is &lt;div&gt;&lt;b&gt;hello world!&lt;&#x2F;b&gt;&lt;&#x2F;div&gt;
+      dangerouslySetInnerHTML&#x3D;&#123;&#123;
+        __html: clean,
+      &#125;&#125;
+    &#x2F;&gt;
+  );
+&#125;</code></pre>
+<p>The best way to catch these issues is during code reviews.<br>Tools such as <a target="_blank" rel="noopener" href="https://semgrep.dev/">SemGrep</a>, <a target="_blank" rel="noopener" href="https://www.sonarlint.org/">SonarLint</a>, and <a target="_blank" rel="noopener" href="https://snyk.io/product/snyk-code/">Snyk Security</a> can spot potential problems during development. Use your judgment when deciding if reported items are real vulnerabilities. There are plenty of tools that can help us find suspicious code, but none of them is 100% effective.</p>
+
+            </div>
+        </article>
+    </div>
+</main>
+    <footer class="d-flex pb-5 pt-5 pt-md-5 border-top border-light bg-primary">
+  <div class="container">
+    <div class="row">
+      <div class="col-9">
+        <ul class="d-flex list-unstyled mb-5 mb-lg-0">
+          <li class="mr-2">
+            <a
+              rel="noopener"
+              href="https://github.com/DeepSpaceHarbor"
+              target="_blank"
+              class="btn btn-icon-only btn-pill btn-primary"
+              aria-label="github social link"
+              data-toggle="tooltip"
+              data-placement="top"
+              title="Open source projects"
+            >
+              <span aria-hidden="true" class="fab fa-github"></span>
+            </a>
+          </li>
+          <li>
+            <a
+              href="mailto:hello@borche.dev"
+              target="_blank"
+              class="btn btn-icon-only btn-pill btn-primary"
+              aria-label="email address link"
+              data-toggle="tooltip"
+              data-placement="top"
+              title="Say 👋 at hello@borche.dev"
+            >
+              <span aria-hidden="true" class="fas fa-paper-plane"></span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div class="col-3">
+        <button
+          aria-labelledby="scroll to top"
+          class="btn btn-primary animate-up-2"
+          type="button"
+          onclick="scrollToTop()"
+        >
+        <span class="back-to-top-text">
+          Back to top
+        </span>
+          <span class="ml-1">
+            <i class="fas fa-angle-double-up"></i>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</footer>
+ <!-- Core -->
+<script src="/vendor/jquery/jquery-3.5.1.min.js"></script>
+<script src="/vendor/popper.js/dist/umd/popper.min.js"></script>
+<script src="/vendor/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="/vendor/headroom.js/dist/headroom.min.js"></script>
+<!-- Vendor JS -->
+<script src="/vendor/onscreen/dist/on-screen.umd.min.js"></script>
+<script src="/vendor/nouislider/distribute/nouislider.min.js"></script>
+<script src="/vendor/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+<script src="/vendor/waypoints/lib/jquery.waypoints.min.js"></script>
+<script src="/vendor/jarallax/dist/jarallax.min.js"></script>
+<script src="/vendor/jquery.counterup/jquery.counterup.min.js"></script>
+<script src="/vendor/jquery-countdown/dist/jquery.countdown.min.js"></script>
+<script src="/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js"></script>
+<script src="/vendor/prismjs/prism.js"></script>
+<script src="/vendor/prismjs/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="/vendor/prismjs/plugins/match-braces/prism-match-braces.min.js"></script>
+<!-- Neumorphism JS -->
+<script src="/js/neumorphism.js"></script>
+
+<script>
+  function scrollToTop() {
+    $(window).scrollTop(0);
+  }
+</script>
+
+
+  </body>
+</html>

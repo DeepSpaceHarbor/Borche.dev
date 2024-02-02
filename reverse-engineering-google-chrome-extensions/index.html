@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <meta name=viewport content="width=device-width, initial-scale=1">
+  <meta name=”robots” content="index, follow">
+  <!-- Meta -->
+  
+  <title>Reverse engineering Google Chrome extensions | Borche.dev</title>
+  <meta name="description" content="We will analyze a Google Chrome extension in order to determine how it works and potentially find a way to access its paid features without paying for them.">
+  <meta property="og:title" content="Reverse engineering Google Chrome extensions" />
+  <meta property="og:url" content="https://borche.dev/reverse-engineering-google-chrome-extensions/" />
+  <meta property="og:image" content="https://borche.dev/files/images/featured/hacking-chrome-extensiona.jpg" />
+  <meta property="og:type" content="article" />
+  <meta property="og:description" content="We will analyze a Google Chrome extension in order to determine how it works and potentially find a way to access its paid features without paying for them." />
+
+  <!-- CSS -->
+  <link type="text/css"  href="/css/neumorphism.css" rel="stylesheet" />
+  <link type="text/css" href="/css/style.css" rel="stylesheet" />
+  <link
+    type="text/css"
+    href="/vendor/@fortawesome/fontawesome-free/css/all.min.css"
+    rel="stylesheet"
+  />
+  <link
+  type="text/css"
+  href="/vendor/prismjs/themes/prism-synthwave84.css"
+  rel="stylesheet"
+/>
+<link
+type="text/css"
+href="/vendor/prismjs/plugins/match-braces/prism-match-braces.css"
+rel="stylesheet"
+/>
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/favicon.png"/>
+
+</head>
+
+  <body class="match-braces">
+    <header class="header-global">
+      <nav
+        id="navbar-main"
+        aria-label="Primary navigation"
+        class="navbar navbar-main navbar-expand-lg navbar-theme-primary headroom navbar-light"
+      >
+        <div class="container position-relative">
+          <a href="/">
+            <h1 class="logo">Borche.dev</h1>
+          </a>
+        </div>
+      </nav>
+    </header>
+    <main><section class="section-header pb-0 bg-primary">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 text-center">
+                <h1 class="display-3 mb-4 px-lg-5">Reverse engineering Google Chrome extensions</h1>
+                <div class="post-meta">
+                    <span class="post-date">December 27, 2022</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="section section-sm bg-primary text-black">
+    <article class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-8 shadow-soft p-4 border border-light rounded post-content text-break">
+                <p>Browser extensions are web apps whose goal is to enhance our browser experience. Because the code runs on our computer, we can learn the inner workings of the extension and maybe modify it to access some of its paid features for free. For this post, I’ve chosen to explore the inner workings of <a target="_blank" rel="noopener" href="https://chrome.google.com/webstore/detail/nimbus-screenshot-screen/bpconcjcammlapcogcnnelfmaeghhagj/related?hl=en">Nimbus Screenshot &amp; Screen Video Recorder</a>. This extension has over a million users and appeared in multiple categories on the google chrome extensions homepage, making it the perfect target. </p>
+<h2 id="1-Find-the-code"><a href="#1-Find-the-code" class="headerlink" title="#1: Find the code"></a>#1: Find the code</h2><p>The first step is to install the extension. Next, open the folder where the extensions code is stored. If you don’t know the location, visit <strong>chrome:&#x2F;&#x2F;version</strong> and look at the value for Profile Path.<br>The profile path folder contains a subfolder named extensions, where the extensions code is stored. Extensions are referenced by their id. To find the id, visit <strong>chrome:&#x2F;&#x2F;extensions</strong>, and click details on the target extension.<br>The folder name that matches the extension id will contain the code for our target.</p>
+<h2 id="2-Break-the-code"><a href="#2-Break-the-code" class="headerlink" title="#2: Break the code "></a>#2: Break the code <img src="/files/images/posts/hacking-chrome-extensions/code.gif" alt="bongo cat typing on a keyboard"></h2><p>Start by copying the folder with the extension code to another location(ex: desktop, documents, etc). Go to <strong>chrome:&#x2F;&#x2F;extensions</strong>, click the load unpacked button and select the new directory.<br>From now on, Chrome will load the extension from the new folder.<br>Open the directory in your code editor.<br>The best way to start is to look around and inspect the file structure. In the case of Nimbus, we can see the files are structured by file type and then by feature.<br><img src="/files/images/posts/hacking-chrome-extensions/Explore-initial-template.png"><br><img src="/files/images/posts/hacking-chrome-extensions/explore-js.png"><br>The next step is to look into the <a target="_blank" rel="noopener" href="https://developer.chrome.com/docs/extensions/mv3/manifest/">manifest.json</a> file. The manifest contains metadata, permissions, keyboard shortcuts, tells you which files run in the background and so on. Our manifest tells us that the <strong>background.html</strong> file is running in the background.<br><img src="/files/images/posts/hacking-chrome-extensions/manifest-json.png" alt="screenshot of manifest-json file"><br>Opening this file reveals the loading of scripts needed for initializing the extension. Looking at the filenames, you can probably guess the purpose of each script.<br><img src="/files/images/posts/hacking-chrome-extensions/background-files.png" alt="screenshot of background.html file"><br>Let’s skip to the fun part and look at <strong>nscNimbusConnect.js</strong>.<br>Peeking at the outline, we can see functions related to login, logout and checking if the user has a premium plan.<br><img src="/files/images/posts/hacking-chrome-extensions/outline.png"><br>While inspecting the file, one line of code piqued my interest:<br><img src="/files/images/posts/hacking-chrome-extensions/premium-sus.png"><br>VSCode was able to find the function, and I did what any developer would do.<br><img src="/files/images/posts/hacking-chrome-extensions/get-opt.png"><br> Added a console log and created a screenshot with nimbus so that I could inspect the output.<br> <img src="/files/images/posts/hacking-chrome-extensions/console-log.png"><br> This was the result:<br> <img src="/files/images/posts/hacking-chrome-extensions/console-logs.png"><br> Through experimentation with the different keys, I realized that adding<br> <pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript">if (key &#x3D;&#x3D;&#x3D; &quot;modePremiumNoNimbus&quot;) &#123;
+  return true;
+&#125;</code></pre></p>
+<p> unlocks premium features and hides buttons related to the <a target="_blank" rel="noopener" href="https://nimbusweb.me/">nimbus platform</a>.<br> And just like that, we hacked our first chrome extension 🥳</p>
+<h2 id="3-Share-the-new-code"><a href="#3-Share-the-new-code" class="headerlink" title="#3: Share the new code"></a>#3: Share the new code</h2><p>To share the new version, we have to repack the extension.<br>Go to <strong>chrome:&#x2F;&#x2F;extensions</strong> and click pack extension. Select the folder with the new code and click on the pack extension button.<br>Chrome will generate two files: a .crx and a .pem file. The .crx is the extension others can download and install in their browser.<br>Make sure to test the repacked extension. Google doesn’t like when others modify the chrome extensions and will try to stop us. If there are errors when importing the repacked extension, remove all unnecessary fields from the manifests file. These are the fields like update url, key, etc. Repack and test again.</p>
+<h2 id="Next-steps"><a href="#Next-steps" class="headerlink" title="Next steps"></a>Next steps</h2><p>As an attacker, the next step is creating an account and testing if the API restricts the use of premium features for free accounts.<br>As a defender, it depends. In the case of Nimbus, it seems like the source of revenue is the nimbus platform, something that we didn’t touch on in this blog post. Doing nothing is the first option. The second option is to obfuscate the code to make it harder for others to bypass the restrictions.<br>Moving the functionality from the client to the server is also possible. It will protect you from hackers at the cost of increased server costs.</p>
+
+            </div>
+        </article>
+    </div>
+</main>
+    <footer class="d-flex pb-5 pt-5 pt-md-5 border-top border-light bg-primary">
+  <div class="container">
+    <div class="row">
+      <div class="col-9">
+        <ul class="d-flex list-unstyled mb-5 mb-lg-0">
+          <li class="mr-2">
+            <a
+              rel="noopener"
+              href="https://github.com/DeepSpaceHarbor"
+              target="_blank"
+              class="btn btn-icon-only btn-pill btn-primary"
+              aria-label="github social link"
+              data-toggle="tooltip"
+              data-placement="top"
+              title="Open source projects"
+            >
+              <span aria-hidden="true" class="fab fa-github"></span>
+            </a>
+          </li>
+          <li>
+            <a
+              href="mailto:hello@borche.dev"
+              target="_blank"
+              class="btn btn-icon-only btn-pill btn-primary"
+              aria-label="email address link"
+              data-toggle="tooltip"
+              data-placement="top"
+              title="Say 👋 at hello@borche.dev"
+            >
+              <span aria-hidden="true" class="fas fa-paper-plane"></span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div class="col-3">
+        <button
+          aria-labelledby="scroll to top"
+          class="btn btn-primary animate-up-2"
+          type="button"
+          onclick="scrollToTop()"
+        >
+        <span class="back-to-top-text">
+          Back to top
+        </span>
+          <span class="ml-1">
+            <i class="fas fa-angle-double-up"></i>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</footer>
+ <!-- Core -->
+<script src="/vendor/jquery/jquery-3.5.1.min.js"></script>
+<script src="/vendor/popper.js/dist/umd/popper.min.js"></script>
+<script src="/vendor/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="/vendor/headroom.js/dist/headroom.min.js"></script>
+<!-- Vendor JS -->
+<script src="/vendor/onscreen/dist/on-screen.umd.min.js"></script>
+<script src="/vendor/nouislider/distribute/nouislider.min.js"></script>
+<script src="/vendor/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+<script src="/vendor/waypoints/lib/jquery.waypoints.min.js"></script>
+<script src="/vendor/jarallax/dist/jarallax.min.js"></script>
+<script src="/vendor/jquery.counterup/jquery.counterup.min.js"></script>
+<script src="/vendor/jquery-countdown/dist/jquery.countdown.min.js"></script>
+<script src="/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js"></script>
+<script src="/vendor/prismjs/prism.js"></script>
+<script src="/vendor/prismjs/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="/vendor/prismjs/plugins/match-braces/prism-match-braces.min.js"></script>
+<!-- Neumorphism JS -->
+<script src="/js/neumorphism.js"></script>
+
+<script>
+  function scrollToTop() {
+    $(window).scrollTop(0);
+  }
+</script>
+
+
+  </body>
+</html>

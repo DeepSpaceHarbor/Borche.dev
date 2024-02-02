@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <meta name=viewport content="width=device-width, initial-scale=1">
+  <meta name=”robots” content="index, follow">
+  <!-- Meta -->
+  
+  <title>Trusted types can prevent DOM-based XSS attacks | Borche.dev</title>
+  <meta name="description" content="State of the art XSS prevention with the help of trusted types.">
+  <meta property="og:title" content="Trusted types can prevent DOM-based XSS attacks" />
+  <meta property="og:url" content="https://borche.dev/trusted-types-can-prevent-dom-based-xss-attacks/" />
+  <meta property="og:image" content="https://borche.dev/files/images/featured/trusted-types.jpg" />
+  <meta property="og:type" content="article" />
+  <meta property="og:description" content="State of the art XSS prevention with the help of trusted types." />
+
+  <!-- CSS -->
+  <link type="text/css"  href="/css/neumorphism.css" rel="stylesheet" />
+  <link type="text/css" href="/css/style.css" rel="stylesheet" />
+  <link
+    type="text/css"
+    href="/vendor/@fortawesome/fontawesome-free/css/all.min.css"
+    rel="stylesheet"
+  />
+  <link
+  type="text/css"
+  href="/vendor/prismjs/themes/prism-synthwave84.css"
+  rel="stylesheet"
+/>
+<link
+type="text/css"
+href="/vendor/prismjs/plugins/match-braces/prism-match-braces.css"
+rel="stylesheet"
+/>
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/favicon.png"/>
+
+</head>
+
+  <body class="match-braces">
+    <header class="header-global">
+      <nav
+        id="navbar-main"
+        aria-label="Primary navigation"
+        class="navbar navbar-main navbar-expand-lg navbar-theme-primary headroom navbar-light"
+      >
+        <div class="container position-relative">
+          <a href="/">
+            <h1 class="logo">Borche.dev</h1>
+          </a>
+        </div>
+      </nav>
+    </header>
+    <main><section class="section-header pb-0 bg-primary">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 text-center">
+                <h1 class="display-3 mb-4 px-lg-5">Trusted types can prevent DOM-based XSS attacks</h1>
+                <div class="post-meta">
+                    <span class="post-date">April 1, 2023</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="section section-sm bg-primary text-black">
+    <article class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-8 shadow-soft p-4 border border-light rounded post-content text-break">
+                <p>If you’re reading this, you’re probably familiar with the concept of XSS attacks. Most web apps accept user-supplied input, typically provided in input fields or coming from API requests. This input travels throughout the codebase until it reaches a function where it is misinterpreted and executed as code.<br>This function is called a sink. Functions like eval, innerHTML, and document.write are typically cited as examples of sink functions.<br>Trusted types <sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup> are a new experimental mechanism that tells the browser to stop accepting potentially dangerous strings as inputs into the sink functions.<br>It forces the developers to use safe API when manipulating the DOM and create trusted type policies that will sanitize the input data from places beyond their control.<br>Take this code as an example. It has two inputs one for the name and another for the URL to an avatar.  When any of the inputs changes, the user sees a greeting with their name and avatar.</p>
+<pre class="line-numbers language-markup" data-language="markup"><code class="language-markup">&lt;head&gt;
+  &lt;script&gt;
+    function welcomeUser() &#123;
+      const name &#x3D; document.querySelector(&#39;input[name&#x3D;&quot;fname&quot;]&#39;).value;
+      const avatar &#x3D; document.querySelector(&#39;input[name&#x3D;&quot;avatar&quot;]&#39;).value;
+      const welcomeMsg &#x3D; document.querySelector(&quot;#welcomeMsg&quot;);
+      welcomeMsg.innerHTML &#x3D; &#96;&lt;h2&gt;Hello 👋 $&#123;name&#125;!&lt;&#x2F;h2&gt;&lt;img src&#x3D;&quot;$&#123;avatar&#125;&quot; &#x2F;&gt;&#96;;
+    &#125;
+  &lt;&#x2F;script&gt;
+&lt;&#x2F;head&gt;
+&lt;body&gt;
+  &lt;form&gt;
+    &lt;label for&#x3D;&quot;fname&quot;&gt;First name:&lt;&#x2F;label&gt;&lt;br &#x2F;&gt;
+    &lt;input type&#x3D;&quot;text&quot; name&#x3D;&quot;fname&quot; onchange&#x3D;&quot;welcomeUser()&quot; &#x2F;&gt;&lt;br &#x2F;&gt;
+    &lt;label for&#x3D;&quot;avatar&quot;&gt;Avatar URL&lt;&#x2F;label&gt;&lt;br &#x2F;&gt;
+    &lt;input type&#x3D;&quot;text&quot; name&#x3D;&quot;avatar&quot; onchange&#x3D;&quot;welcomeUser()&quot; &#x2F;&gt;
+  &lt;&#x2F;form&gt;
+  &lt;div id&#x3D;&quot;welcomeMsg&quot;&gt;&lt;&#x2F;div&gt;
+&lt;&#x2F;body&gt;
+</code></pre>
+<p><img src="/files/images/posts/trusted-types/base-code.png"><br>This code is obviously insecure. To test that type </p>
+<pre class="line-numbers language-text" data-language="text"><code class="language-text">My name is &lt;img src&#x3D;&quot;x&quot; onerror&#x3D;&quot;alert(&#39;XSS&#39;)&quot;&gt;</code></pre>
+<p>as first name and observe the result.<br><img src="/files/images/posts/trusted-types/Selection_125.png"><br>Next, enable trusted types through the content security policy. Typically, you would do this through the headers, but since this is a demo, we can take a shortcut and create CSP through the meta tags. </p>
+<pre class="line-numbers language-markup" data-language="markup"><code class="language-markup">&lt;meta http-equiv&#x3D;&quot;Content-Security-Policy&quot; content&#x3D;&quot;require-trusted-types-for &#39;script&#39;&quot; &#x2F;&gt;</code></pre>
+<p>Open developer tools and type something in the first name field. The browser will stop you from putting the potentially dangerous input into the dom.<br><img src="/files/images/posts/trusted-types/Selection_126.png"></p>
+<p>One way to deal with this error is to refactor the welcomeUser function into something like this:</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript">function welcomeUser() &#123;
+  const name &#x3D; document.querySelector(&#39;input[name&#x3D;&quot;fname&quot;]&#39;).value;
+  const avatar &#x3D; document.querySelector(&#39;input[name&#x3D;&quot;avatar&quot;]&#39;).value;
+  const welcomeMsg &#x3D; document.querySelector(&quot;#welcomeMsg&quot;);
+  const helloEl &#x3D; document.createElement(&quot;h2&quot;);
+  const imgEl &#x3D; document.createElement(&quot;img&quot;);
+  imgEl.src &#x3D; avatar;
+  helloEl.textContent &#x3D; &#96;Hello 👋 $&#123;name&#125;!&#96;;
+  welcomeMsg.replaceChildren(helloEl, imgEl);
+&#125;</code></pre>
+<p>The other way is to create a trusted types policy and sanitize the input before passing it to the sink function. A sample policy that takes an insecure string and passes it to the sink function looks like this:</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript">const escapeHTMLPolicy &#x3D; trustedTypes.createPolicy(&quot;default&quot;, &#123;
+  createHTML: (string) &#x3D;&gt; string,
+&#125;);</code></pre>
+<p>This will get our app back to a working state, but the security problem will remain. To safeguard from XSS attacks, use <a target="_blank" rel="noopener" href="https://github.com/cure53/DOMPurify">DomPurify</a> to sanitize the inputs before passing them to the sink functions.</p>
+<pre class="line-numbers language-markup" data-language="markup"><code class="language-markup">&lt;head&gt;
+  &lt;script
+    src&#x3D;&quot;https:&#x2F;&#x2F;cdnjs.cloudflare.com&#x2F;ajax&#x2F;libs&#x2F;dompurify&#x2F;3.0.1&#x2F;purify.min.js&quot;
+    integrity&#x3D;&quot;sha512-TU4FJi5o+epsahLtM9OFRvH2gXmmlzGlysk9wtTFgbYbMvFzh3Cw1l3ubnYIvBiZCC&#x2F;aurRHS408TeEbcuOoyQ&#x3D;&#x3D;&quot;
+    crossorigin&#x3D;&quot;anonymous&quot;
+    referrerpolicy&#x3D;&quot;no-referrer&quot;
+  &gt;&lt;&#x2F;script&gt;
+  &lt;meta http-equiv&#x3D;&quot;Content-Security-Policy&quot; content&#x3D;&quot;require-trusted-types-for &#39;script&#39;&quot; &#x2F;&gt;
+  &lt;script&gt;
+    trustedTypes.createPolicy(&quot;default&quot;, &#123;
+      createHTML: (string) &#x3D;&gt; DOMPurify.sanitize(string),
+    &#125;);
+    function welcomeUser() &#123;
+      const name &#x3D; document.querySelector(&#39;input[name&#x3D;&quot;fname&quot;]&#39;).value;
+      const avatar &#x3D; document.querySelector(&#39;input[name&#x3D;&quot;avatar&quot;]&#39;).value;
+      const welcomeMsg &#x3D; document.querySelector(&quot;#welcomeMsg&quot;);
+      welcomeMsg.innerHTML &#x3D; &#96;&lt;h2&gt;Hello 👋 $&#123;name&#125;!&lt;&#x2F;h2&gt;&lt;img src&#x3D;&quot;$&#123;avatar&#125;&quot; &#x2F;&gt;&#96;;
+    &#125;
+  &lt;&#x2F;script&gt;
+&lt;&#x2F;head&gt;
+&lt;body&gt;
+  &lt;form&gt;
+    &lt;label for&#x3D;&quot;fname&quot;&gt;First name:&lt;&#x2F;label&gt;&lt;br &#x2F;&gt;
+    &lt;input type&#x3D;&quot;text&quot; name&#x3D;&quot;fname&quot; onchange&#x3D;&quot;welcomeUser()&quot; &#x2F;&gt;&lt;br &#x2F;&gt;
+    &lt;label for&#x3D;&quot;avatar&quot;&gt;Avatar URL&lt;&#x2F;label&gt;&lt;br &#x2F;&gt;
+    &lt;input type&#x3D;&quot;text&quot; name&#x3D;&quot;avatar&quot; onchange&#x3D;&quot;welcomeUser()&quot; &#x2F;&gt;
+  &lt;&#x2F;form&gt;
+  &lt;div id&#x3D;&quot;welcomeMsg&quot;&gt;&lt;&#x2F;div&gt;
+&lt;&#x2F;body&gt;
+</code></pre>
+<p>For situations where more granular control is needed, custom policies can help. If we were to recreate the same example, we would start by creating a new policy.</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript">document.myCustomPolicy &#x3D; trustedTypes.createPolicy(&quot;myCustomPolicy&quot;, &#123;
+  createHTML: (string) &#x3D;&gt; &#123;
+    return DOMPurify.sanitize(string);
+  &#125;,
+&#125;);</code></pre>
+<p>Follow up by creating safe values using the new policy.</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript">welcomeMsg.innerHTML &#x3D; document.myCustomPolicy.createHTML(&#96;&lt;h2&gt;Hello 👋 $&#123;name&#125;!&lt;&#x2F;h2&gt;&lt;img src&#x3D;&quot;$&#123;avatar&#125;&quot; &#x2F;&gt;&#96;);</code></pre>
+<p>Finally, the CSP header is updated to inform the browser of the changes.</p>
+<pre class="line-numbers language-markup" data-language="markup"><code class="language-markup">&lt;meta
+  http-equiv&#x3D;&quot;Content-Security-Policy&quot;
+  content&#x3D;&quot;require-trusted-types-for &#39;script&#39;; trusted-types myCustomPolicy dompurify&quot;
+&#x2F;&gt;</code></pre>
+<p>That’s it! 🥳 We just used trusted types to secure a part of our web app.</p>
+<h2 id="Next-steps"><a href="#Next-steps" class="headerlink" title="Next steps"></a>Next steps</h2><p>Adopting trusted types in your organization is a great way to promote the usage of safe APIs and drastically reduce the XSS attack surface.<br>When Google started its API hardening project <sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>, the majority of the questions and help requests occurred in the first two weeks.<br>In the following weeks, it fell to an average of one question per week.<br>This experience suggests that large organizations should be able to adopt trusted types with relatively low effort. As expected, the number of XSS reports saw a significant decrease.<br>The development team behind Angular had a similar experience <sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>.<br>It took six weeks for a team of four security engineers and one intern to implement trusted types. During this period, they implemented trusted types and discovered previously unknown vulnerabilities in Angular and the surrounding ecosystem.<br>If you’re looking to play with this, you should know that trusted types are <a target="_blank" rel="noopener" href="https://caniuse.com/trusted-types">available</a> in Chromium based browsers, and a polyfill is available in the <a target="_blank" rel="noopener" href="https://github.com/w3c/trusted-types#polyfill">w3c repository</a>.</p>
+<div id="footnotes"><hr><div id="footnotelist"><ol style="list-style:none; padding-left: 0;"><li id="fn:1"><span style="display: inline-block; vertical-align: top; padding-right: 10px;">1.</span><span style="display: inline-block; vertical-align: top;">Google LLC. &quot;Trusted Types&quot;, W3C, Available: <a target="_blank" rel="noopener" href="https://w3.org/TR/trusted-types/#introduction">https://w3.org/TR/trusted-types/</a>.</span><a href="#fnref:1" rev="footnote"> ↩</a></li><li id="fn:2"><span style="display: inline-block; vertical-align: top; padding-right: 10px;">2.</span><span style="display: inline-block; vertical-align: top;">Pei Wang, Julian Bangert, and Christoph Kern. &quot;<a target="_blank" rel="noopener" href="https://research.google/pubs/pub49950/">If it’s not secure, it should not compile: Preventing DOM-based XSS in large-scale web development with API hardening.</a>&quot; In 2021 IEEE/ACM 43rd International Conference on Software Engineering (ICSE), pp. 1360-1372. IEEE, 2021.</span><a href="#fnref:2" rev="footnote"> ↩</a></li><li id="fn:3"><span style="display: inline-block; vertical-align: top; padding-right: 10px;">3.</span><span style="display: inline-block; vertical-align: top;">P. Wang, B. Á. Guðmundsson and K. Kotowicz, &quot;<a target="_blank" rel="noopener" href="https://research.google/pubs/pub50513/">Adopting Trusted Types in ProductionWeb Frameworks to Prevent DOM-Based Cross-Site Scripting: A Case Study</a>,&quot; 2021 IEEE European Symposium on Security and Privacy Workshops (EuroS&amp;PW), Vienna, Austria, 2021, pp. 60-73, doi: 10.1109/EuroSPW54576.2021.00013.</span><a href="#fnref:3" rev="footnote"> ↩</a></li></ol></div></div>
+            </div>
+        </article>
+    </div>
+</main>
+    <footer class="d-flex pb-5 pt-5 pt-md-5 border-top border-light bg-primary">
+  <div class="container">
+    <div class="row">
+      <div class="col-9">
+        <ul class="d-flex list-unstyled mb-5 mb-lg-0">
+          <li class="mr-2">
+            <a
+              rel="noopener"
+              href="https://github.com/DeepSpaceHarbor"
+              target="_blank"
+              class="btn btn-icon-only btn-pill btn-primary"
+              aria-label="github social link"
+              data-toggle="tooltip"
+              data-placement="top"
+              title="Open source projects"
+            >
+              <span aria-hidden="true" class="fab fa-github"></span>
+            </a>
+          </li>
+          <li>
+            <a
+              href="mailto:hello@borche.dev"
+              target="_blank"
+              class="btn btn-icon-only btn-pill btn-primary"
+              aria-label="email address link"
+              data-toggle="tooltip"
+              data-placement="top"
+              title="Say 👋 at hello@borche.dev"
+            >
+              <span aria-hidden="true" class="fas fa-paper-plane"></span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div class="col-3">
+        <button
+          aria-labelledby="scroll to top"
+          class="btn btn-primary animate-up-2"
+          type="button"
+          onclick="scrollToTop()"
+        >
+        <span class="back-to-top-text">
+          Back to top
+        </span>
+          <span class="ml-1">
+            <i class="fas fa-angle-double-up"></i>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</footer>
+ <!-- Core -->
+<script src="/vendor/jquery/jquery-3.5.1.min.js"></script>
+<script src="/vendor/popper.js/dist/umd/popper.min.js"></script>
+<script src="/vendor/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="/vendor/headroom.js/dist/headroom.min.js"></script>
+<!-- Vendor JS -->
+<script src="/vendor/onscreen/dist/on-screen.umd.min.js"></script>
+<script src="/vendor/nouislider/distribute/nouislider.min.js"></script>
+<script src="/vendor/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+<script src="/vendor/waypoints/lib/jquery.waypoints.min.js"></script>
+<script src="/vendor/jarallax/dist/jarallax.min.js"></script>
+<script src="/vendor/jquery.counterup/jquery.counterup.min.js"></script>
+<script src="/vendor/jquery-countdown/dist/jquery.countdown.min.js"></script>
+<script src="/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js"></script>
+<script src="/vendor/prismjs/prism.js"></script>
+<script src="/vendor/prismjs/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="/vendor/prismjs/plugins/match-braces/prism-match-braces.min.js"></script>
+<!-- Neumorphism JS -->
+<script src="/js/neumorphism.js"></script>
+
+<script>
+  function scrollToTop() {
+    $(window).scrollTop(0);
+  }
+</script>
+
+
+  </body>
+</html>

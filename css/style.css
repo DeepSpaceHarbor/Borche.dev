@@ -1,0 +1,136 @@
+@font-face {
+  font-family: Hacked;
+  src: url("./Hacked-KerX.ttf") format("truetype");
+  font-display: block;
+}
+
+:root *::-webkit-scrollbar {
+  width: 1rem;
+}
+
+:root *::-webkit-scrollbar-thumb {
+  background-color: #696d73;
+  -webkit-background-clip: content-box;
+  background-clip: content-box;
+  border-right: 2px solid transparent;
+  /* border-radius: 1px; */
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: #525457;
+}
+
+:root *::-webkit-scrollbar-track-piece {
+  background-color: #ffffff33;
+}
+
+.logo {
+  font-family: "Hacked", fantasy;
+}
+
+:root {
+  cursor: url("/images/cursor.png"), auto !important;
+}
+
+::selection {
+  background-color: #d1d9e6;
+}
+
+pre ::selection {
+  background-color: black;
+}
+
+a,
+button {
+  cursor: url("/images/hand.png"), auto !important;
+}
+
+.post-content > img {
+  border-radius: 0.55rem !important;
+}
+
+.page-number.current {
+  display: none;
+}
+
+@media screen and (max-width: 767px) {
+  .header-global {
+    padding-bottom: 2rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .back-to-top-text {
+    display: none;
+  }
+}
+
+blockquote {
+  margin: 0 0 1rem;
+  border-left: 2px solid #31344b;
+  line-height: 25px;
+  padding-left: 8px;
+}
+
+article blockquote,
+article p {
+  margin-bottom: 0px !important;
+}
+
+article li,
+article ol,
+article ul {
+  margin-bottom: auto !important;
+}
+
+article h1,
+article h2,
+article h3,
+article h4,
+article h5,
+article h6 {
+  margin: 1rem 0 1rem 0 !important;
+  border-bottom: 1px solid;
+  padding-bottom: 2px;
+  border-color: #d1d9e6 !important;
+}
+
+table {
+  margin-top: 1rem;
+}
+
+code {
+  color: #ecf0f3 !important;
+  word-break: break-word;
+  background-color: #262833;
+  padding: 2px 2px;
+  border-radius: 2px;
+}
+
+article a {
+  color: #31344b !important;
+  text-decoration: underline;
+  text-decoration-thickness: 0.3px;
+}
+
+article a:hover {
+  color: #13141d !important;
+  border-bottom: 0.3px ridge #13141d;
+}
+
+#footnotelist a:hover {
+  font-weight: initial;
+  text-decoration: none;
+}
+
+.featured-image {
+  max-height: 270px;
+  max-width: 450px;
+  height: auto;
+  width: auto;
+}
+
+.post-card-image {
+  max-height: 250px;
+  height: auto;
+}
